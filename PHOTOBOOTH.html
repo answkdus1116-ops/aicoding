@@ -4,28 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎨 테마 스튜디오 Pro</title>
-    <style>
-        :root { --accent: #6366f1; }
-        body { margin: 0; font-family: 'Pretendard', sans-serif; background: #f1f5f9; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .app-container { display: flex; width: 95vw; height: 90vh; background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
-        .editor-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: #f8fafc; }
-        .canvas-wrapper { position: relative; width: 100%; max-width: 800px; aspect-ratio: 4/3; background: #000; border-radius: 20px; overflow: hidden; }
-        video, canvas { position: absolute; width: 100%; height: 100%; object-fit: contain; }
-        #mainCanvas { z-index: 2; cursor: crosshair; }
-        .control-panel { width: 380px; padding: 25px; border-left: 1px solid #eee; overflow-y: auto; }
-        
-        .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
-        .theme-btn { padding: 10px; border: 2px solid #eee; background: white; border-radius: 10px; cursor: pointer; font-size: 13px; }
-        .theme-btn.active { border-color: var(--accent); background: #f5f3ff; font-weight: bold; }
-        
-        .tool-box { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
-        .btn-primary { background: var(--accent); color: white; }
-        .hidden { display: none !important; }
-        
-        .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; font-size: 24px; text-align: center; cursor: pointer; }
-    </style>
+  <style>
+    :root { 
+        --accent: #6366f1; 
+        --spring: #ff85a2;
+        --summer: #0ea5e9;
+        --autumn: #f59e0b;
+        --winter: #94a3b8;
+    }
+
+    body { margin: 0; font-family: 'Pretendard', sans-serif; background: #f1f5f9; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    
+    .app-container { display: flex; width: 95vw; height: 90vh; background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
+    
+    .editor-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: #f8fafc; }
+    
+    /* 캔버스 래퍼: 여기에 테두리가 생깁니다 */
+    .canvas-wrapper { 
+        position: relative; 
+        width: 100%; 
+        max-width: 800px; 
+        aspect-ratio: 4/3; 
+        background: #000; 
+        border-radius: 20px; 
+        overflow: hidden;
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+    }
+
+    video, canvas { position: absolute; width: 100%; height: 100%; object-fit: contain; }
+    #mainCanvas { z-index: 2; cursor: crosshair; }
+    
+    .control-panel { width: 380px; padding: 25px; border-left: 1px solid #eee; overflow-y: auto; }
+    
+    /* 테마 버튼 그리드 */
+    .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+    .theme-btn { padding: 10px; border: 2px solid #eee; background: white; border-radius: 10px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    .theme-btn.active { border-color: var(--accent); background: #f5f3ff; font-weight: bold; }
+    
+    /* 계절 및 테마별 테두리 설정 (border-image 활용) */
+    .frame-spring { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E🌸%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E🍀%3C/text%3E%3C/svg%3E") 30 round; background-color: #fff0f5 !important; }
+    .frame-summer { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E🌻%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E🌊%3C/text%3E%3C/svg%3E") 30 round; background-color: #e0f7fa !important; }
+    .frame-autumn { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E🍂%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E🍁%3C/text%3E%3C/svg%3E") 30 round; background-color: #fff3e0 !important; }
+    .frame-winter { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E☃️%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E❄️%3C/text%3E%3C/svg%3E") 30 round; background-color: #f1f5f9 !important; }
+    .frame-grad { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E🎓%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E💐%3C/text%3E%3C/svg%3E") 30 round; background-color: #ffffff !important; }
+    .frame-love { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E💖%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E💝%3C/text%3E%3C/svg%3E") 30 round; background-color: #fff1f2 !important; }
+
+    .tool-box { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+    .tool-box p { margin: 0 0 10px 0; font-size: 14px; font-weight: bold; color: #64748b; }
+    
+    input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+    button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+    .btn-primary { background: var(--accent); color: white; margin-top: 10px; }
+    .btn-primary:hover { background: #4f46e5; }
+    
+    .hidden { display: none !important; }
+    
+    /* 스티커 그리드: 더 많아진 스티커 대응 */
+    .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; font-size: 26px; text-align: center; }
+    .sticker-item { cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; padding: 5px; border-radius: 8px; }
+    .sticker-item:hover { transform: scale(1.3); background: #eee; }
+</style>
 </head>
 <body>
     <div class="app-container">
@@ -45,13 +84,24 @@
 
         <aside class="control-panel">
             <h3>🖼️ 테마 프레임 (아이콘 포함)</h3>
-            <div class="theme-grid">
-                <button class="theme-btn active" onclick="setTheme('none', this)">기본</button>
-                <button class="theme-btn" onclick="setTheme('love', this)">💖 사랑 (하트)</button>
-                <button class="theme-btn" onclick="setTheme('grad', this)">🎓 졸업 (학사모/곰)</button>
-                <button class="theme-btn" onclick="setTheme('spring', this)">🌸 봄 (벚꽃)</button>
-                <button class="theme-btn" onclick="setTheme('summer', this)">🌊 여름 (파도)</button>
-            </div>
+           <div class="controls">
+    <button onclick="changeFrame('none')">기본</button>
+    <button onclick="changeFrame('spring')">🌸 봄봄</button>
+    <button onclick="changeFrame('summer')">🌻 여름</button>
+    <button onclick="changeFrame('autumn')">🍂 가을</button>
+    <button onclick="changeFrame('winter')">☃️ 겨울</button>
+    <button onclick="changeFrame('grad')">🎓 졸업</button>
+    <button onclick="changeFrame('love')">❤️ 사랑</button>
+</div>
+
+<div class="controls">
+    <p>🎨 스티커로 사진을 더 예쁘게!</p>
+    <div id="sticker-list">
+        <button onclick="addSticker('❤️')">❤️</button>
+        <button onclick="addSticker('💖')">💖</button>
+        <button onclick="addSticker('✨')">✨</button>
+        </div>
+</div>
 
             <div class="tool-box">
                 <h3>✍️ 문구 설정</h3>
