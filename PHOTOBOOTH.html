@@ -13,30 +13,37 @@
         
         .editor-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: #f8fafc; position: relative; }
         
-        /* 캔버스 래퍼: 네컷 규격 (가로 400, 세로 650) */
+        /* 네컷 프레임 */
         .canvas-wrapper { position: relative; width: 400px; height: 650px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: 0.3s; }
         
         /* 카메라 미리보기 */
-        #cameraView { position: absolute; width: 340px; height: 130px; left: 30px; object-fit: cover; z-index: 5; border-radius: 5px; border: 3px solid var(--accent); display: none; }
+        #cameraView { position: absolute; width: 340px; height: 130px; left: 30px; object-fit: cover; z-index: 5; border-radius: 5px; border: 3px solid var(--accent); display: none; background: #000; }
         #mainCanvas { position: absolute; width: 100%; height: 100%; z-index: 2; cursor: crosshair; }
         
         #countdown { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 100px; color: var(--accent); font-weight: bold; z-index: 10; display: none; text-shadow: 2px 2px 10px white; }
 
         .control-panel { width: 380px; padding: 25px; border-left: 1px solid #eee; overflow-y: auto; }
+        
+        /* 테마 버튼 */
         .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
-        .theme-btn { padding: 10px; border: 2px solid #eee; background: white; border-radius: 10px; cursor: pointer; font-family: inherit; font-size: 16px; font-weight: bold; }
+        .theme-btn { padding: 10px; border: 2px solid #eee; background: white; border-radius: 10px; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: bold; }
         .theme-btn.active { border-color: var(--accent); background: #f5f3ff; color: var(--accent); }
 
         .tool-box { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .tool-box h3 { margin-top: 0; font-size: 18px; color: #1e293b; }
         input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
         button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; font-family: inherit; font-size: 16px; }
-        .btn-primary { background: var(--accent); color: white; margin-top: 10px; }
-        .btn-danger { background: #ef4444; color: white; margin-top: 5px; }
         
+        .btn-primary { background: var(--accent); color: white; margin-top: 10px; }
+        .btn-primary:hover { background: #4f46e5; }
+        .btn-danger { background: #ef4444; color: white; margin-top: 5px; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        /* 스티커 그리드 넉넉하게 확장 */
         .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; font-size: 26px; text-align: center; margin-bottom: 15px; }
-        .sticker-item { cursor: pointer; transition: transform 0.2s; }
-        .sticker-item:hover { transform: scale(1.3); }
+        .sticker-item { cursor: pointer; transition: transform 0.2s; padding: 5px; border-radius: 5px; }
+        .sticker-item:hover { transform: scale(1.3); background: #e2e8f0; }
+        
         .hidden { display: none !important; }
     </style>
 </head>
@@ -67,27 +74,288 @@
         <aside class="control-panel">
             <h3>🖼️ 배경 테마</h3>
             <div class="theme-grid">
-                <button class="theme-btn active" onclick="changeTheme('none', this)">🤍 기본 화이트</button>
-                <button class="theme-btn" onclick="changeTheme('spring', this)">🌸 봄봄 핑크</button>
+                <button class="theme-btn active" onclick="changeTheme('none', this)">🤍 화이트</button>
+                <button class="theme-btn" onclick="changeTheme('spring', this)">🌸 봄 핑크</button>
                 <button class="theme-btn" onclick="changeTheme('summer', this)">🌻 여름 블루</button>
                 <button class="theme-btn" onclick="changeTheme('autumn', this)">🍂 가을 오렌지</button>
                 <button class="theme-btn" onclick="changeTheme('winter', this)">☃️ 겨울 그레이</button>
+                <button class="theme-btn" onclick="changeTheme('grad', this)">🎓 졸업 축하</button>
                 <button class="theme-btn" onclick="changeTheme('love', this)">❤️ 사랑 핑크</button>
             </div>
 
             <div class="tool-box">
-                <h3>✍️ 문구 설정</h3>
-                <input type="text" id="textInput" placeholder="문구 입력">
+                <h3>✍️ 문구 추가</h3>
+                <input type="text" id="textInput" placeholder="여기에 문구를 입력하세요">
                 <select id="fontFamily">
                     <option value="Gaegu">귀여운 개구체</option>
-                    <option value="Arial">깔끔한 기본체</option>
+                    <option value="Arial">깔끔한 고딕체</option>
                     <option value="serif">진지한 명조체</option>
                 </select>
-                <button class="btn-primary" onclick="addTextObject()">문구 추가</button>
+                <button class="btn-primary" onclick="addTextObject()">문구 넣기</button>
             </div>
 
-            <h3>⭐ 스티커</h3>
+            <h3>⭐ 스티커 (클릭해서 추가)</h3>
             <div class="sticker-grid">
                 <span class="sticker-item" onclick="addSticker('❤️')">❤️</span>
                 <span class="sticker-item" onclick="addSticker('✨')">✨</span>
-                <span class="sticker-item"
+                <span class="sticker-item" onclick="addSticker('🍀')">🍀</span>
+                <span class="sticker-item" onclick="addSticker('🐱')">🐱</span>
+                <span class="sticker-item" onclick="addSticker('🐥')">🐥</span>
+                <span class="sticker-item" onclick="addSticker('🎀')">🎀</span>
+                <span class="sticker-item" onclick="addSticker('🌸')">🌸</span>
+                <span class="sticker-item" onclick="addSticker('🔥')">🔥</span>
+                <span class="sticker-item" onclick="addSticker('🎓')">🎓</span>
+                <span class="sticker-item" onclick="addSticker('🧸')">🧸</span>
+            </div>
+
+            <div id="selectedControls" class="tool-box hidden">
+                <h3 style="color: #6366f1;">🛠️ 선택 항목 조절</h3>
+                <p style="font-size: 14px; margin: 0 0 5px 0;">📏 크기 조절</p>
+                <input type="range" id="sizeSlider" min="20" max="200" value="50" oninput="updateSize(this.value)">
+                <button class="btn-danger" onclick="deleteSelected()">🗑️ 삭제하기 (Delete 키)</button>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        const video = document.getElementById('cameraView');
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const countdownEl = document.getElementById('countdown');
+        
+        let objects = [], selectedObj = null, isDragging = false;
+        let photos = [], currentCut = 0, currentTheme = 'none';
+        
+        canvas.width = 400; canvas.height = 650;
+
+        // 카메라 시작 (에러 처리 강화)
+        async function startCamera() {
+            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+                alert("⚠️ 주의: 카메라 기능은 안전한 연결(HTTPS) 환경에서만 작동합니다. 브라우저 주소창을 확인해주세요.");
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                video.srcObject = stream;
+                video.onloadedmetadata = () => { showPreview(); };
+            } catch(e) {
+                alert("카메라를 켤 수 없습니다. 카메라 권한을 허용했는지 확인해주세요!\n(에러: " + e.message + ")");
+            }
+        }
+
+        function showPreview() {
+            if(currentCut < 4) {
+                video.style.display = 'block';
+                video.style.top = `${40 + (currentCut * 140)}px`;
+            } else {
+                video.style.display = 'none';
+            }
+        }
+
+        // 테마 설정 (졸업 테마 포함)
+        function changeTheme(theme, btn) {
+            currentTheme = theme;
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function drawFrame() {
+            const themes = {
+                none: { color: '#ffffff', icons: [] },
+                spring: { color: '#fff0f5', icons: ['🌸', '🌷'] },
+                summer: { color: '#e0f7fa', icons: ['🌻', '🌊'] },
+                autumn: { color: '#fff3e0', icons: ['🍂', '🍁'] },
+                winter: { color: '#f1f5f9', icons: ['☃️', '❄️'] },
+                grad: { color: '#f8fafc', icons: ['🎓', '💐'] },
+                love: { color: '#fff1f2', icons: ['❤️', '💖'] }
+            };
+
+            const config = themes[currentTheme];
+            
+            ctx.fillStyle = config.color;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if(currentTheme !== 'none' && config.icons.length > 0) {
+                ctx.font = "24px Arial";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                const step = 60;
+                
+                for(let x = 20; x <= 380; x += step) {
+                    ctx.fillText(config.icons[x % config.icons.length], x, 20);
+                    ctx.fillText(config.icons[(x+1) % config.icons.length], x, 630);
+                }
+                for(let y = 60; y <= 600; y += step) {
+                    ctx.fillText(config.icons[y % config.icons.length], 15, y);
+                    ctx.fillText(config.icons[(y+1) % config.icons.length], 385, y);
+                }
+            }
+        }
+
+        async function handleCapture() {
+            document.getElementById('captureControls').classList.add('hidden');
+            await startCountdown(3);
+            takeShot();
+        }
+
+        function startCountdown(sec) {
+            return new Promise(resolve => {
+                countdownEl.style.display = 'block';
+                let count = sec;
+                countdownEl.innerText = count;
+                const timer = setInterval(() => {
+                    count--;
+                    if (count <= 0) {
+                        clearInterval(timer);
+                        countdownEl.style.display = 'none';
+                        resolve();
+                    }
+                    countdownEl.innerText = count;
+                }, 1000);
+            });
+        }
+
+        function takeShot() {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 340; tempCanvas.height = 130;
+            const tCtx = tempCanvas.getContext('2d');
+            
+            if (video.videoWidth > 0) {
+                tCtx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, 340, 130);
+            } else {
+                tCtx.fillStyle = '#ccc';
+                tCtx.fillRect(0, 0, 340, 130);
+                tCtx.fillStyle = '#000';
+                tCtx.font = '20px Arial';
+                tCtx.fillText('카메라 화면 없음', 170, 65);
+            }
+            
+            photos[currentCut] = tempCanvas;
+            video.style.display = 'none';
+            document.getElementById('confirmControls').classList.remove('hidden');
+        }
+
+        function nextCut() {
+            currentCut++;
+            document.getElementById('confirmControls').classList.add('hidden');
+            if (currentCut < 4) {
+                document.getElementById('cutText').innerText = ["첫 번째", "두 번째", "세 번째", "네 번째"][currentCut] + " 컷";
+                document.getElementById('captureControls').classList.remove('hidden');
+                showPreview();
+            } else {
+                document.getElementById('editActions').classList.remove('hidden');
+            }
+        }
+
+        function retake() {
+            document.getElementById('confirmControls').classList.add('hidden');
+            document.getElementById('captureControls').classList.remove('hidden');
+            showPreview();
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawFrame();
+
+            photos.forEach((img, i) => {
+                ctx.drawImage(img, 30, 40 + (i * 140), 340, 130);
+            });
+
+            objects.forEach(obj => {
+                ctx.save();
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.font = `${obj.size}px ${obj.font || 'Arial'}`;
+                
+                if(selectedObj === obj) {
+                    ctx.strokeStyle = "#6366f1"; ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeRect(obj.x - obj.size/1.5, obj.y - obj.size/1.5, obj.size*1.3, obj.size*1.3);
+                }
+                ctx.fillText(obj.content, obj.x, obj.y);
+                ctx.restore();
+            });
+            requestAnimationFrame(render);
+        }
+
+        function addTextObject() {
+            const val = document.getElementById('textInput').value;
+            const font = document.getElementById('fontFamily').value;
+            if(val) {
+                objects.push({type:'text', content:val, x:200, y:610, size:40, font: font});
+                document.getElementById('textInput').value = '';
+            }
+        }
+
+        function addSticker(s) {
+            objects.push({type:'sticker', content:s, x:200, y:300, size:50, font:'Arial'});
+        }
+
+        function updateSize(v) {
+            if(selectedObj) selectedObj.size = parseInt(v);
+        }
+
+        function deleteSelected() {
+            if(selectedObj) {
+                objects = objects.filter(o => o !== selectedObj);
+                selectedObj = null;
+                document.getElementById('selectedControls').classList.add('hidden');
+            }
+        }
+
+        // 객체 선택 방식 안전하게 수정 (구형 브라우저 호환)
+        canvas.onmousedown = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            
+            selectedObj = null;
+            // 배열을 뒤에서부터 순회 (맨 위에 있는 객체를 먼저 잡도록)
+            for(let i = objects.length - 1; i >= 0; i--) {
+                const o = objects[i];
+                // 클릭 범위 계산
+                if(Math.abs(o.x - x) < o.size && Math.abs(o.y - y) < o.size) {
+                    selectedObj = o;
+                    objects.push(objects.splice(i, 1)[0]); // 선택한 객체를 맨 위로 올림
+                    break;
+                }
+            }
+            
+            if(selectedObj) {
+                isDragging = true;
+                document.getElementById('selectedControls').classList.remove('hidden');
+                document.getElementById('sizeSlider').value = selectedObj.size;
+            } else {
+                document.getElementById('selectedControls').classList.add('hidden');
+            }
+        };
+
+        window.onmousemove = (e) => {
+            if(isDragging && selectedObj) {
+                const rect = canvas.getBoundingClientRect();
+                selectedObj.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+                selectedObj.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            }
+        };
+
+        window.onmouseup = () => isDragging = false;
+        window.onkeydown = (e) => { if(e.key === 'Delete' || e.key === 'Backspace') deleteSelected(); };
+
+        function resetStudio() {
+            photos = []; objects = []; currentCut = 0;
+            document.getElementById('editActions').classList.add('hidden');
+            document.getElementById('captureControls').classList.remove('hidden');
+            document.getElementById('cutText').innerText = "첫 번째 컷";
+            showPreview();
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'my-four-cut.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        startCamera(); render();
+    </script>
+</body>
+</html>
