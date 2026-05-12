@@ -323,6 +323,9 @@
         }
 
         function retake() {
+            // [수정된 부분] 다시 찍기 클릭 시 현재 사진 정보를 초기화합니다.
+            photos[currentCut] = null; 
+            
             document.getElementById('confirmControls').classList.add('hidden');
             document.getElementById('captureControls').classList.remove('hidden');
         }
@@ -334,13 +337,14 @@
             const basePhotoY = 50; 
             const photoStep = 140;
 
-            // 1. 찍힌 사진들 렌더링
+            // 1. 찍힌 사진들 렌더링 (값이 존재할 때만 그리기)
             photos.forEach((img, i) => {
-                ctx.drawImage(img, 30, basePhotoY + (i * photoStep), targetW, targetH);
+                if(img) ctx.drawImage(img, 30, basePhotoY + (i * photoStep), targetW, targetH);
             });
 
-            // 2. 실시간 카메라 미리보기 렌더링 (캔버스 내부에 직접 그림 - 오류 원천 차단)
-            if (currentCut < 4 && video.readyState >= 2) {
+            // 2. 실시간 카메라 미리보기 렌더링 
+            // [수정된 부분] 현재 컷(photos[currentCut])에 아직 사진이 없을 때만 카메라를 켭니다!
+            if (currentCut < 4 && !photos[currentCut] && video.readyState >= 2) {
                 const previewY = basePhotoY + (currentCut * photoStep);
                 const { srcX, srcY, srcW, srcH } = getCropCoordinates();
 
