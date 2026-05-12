@@ -87,7 +87,7 @@
 
         .tool-box { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .tool-box h3 { margin-top: 0; font-size: 18px; color: #1e293b; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        input[type="text"], select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
         button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; font-family: inherit; font-size: 16px; }
         
         .btn-primary { background: var(--accent); color: white; margin-top: 10px; }
@@ -119,9 +119,12 @@
                     <button onclick="retake()" style="background:#64748b; color:white;">❌ 다시 찍기</button>
                     <button onclick="nextCut()" style="background:#22c55e; color:white;">✅ 다음으로</button>
                 </div>
-                <div id="editActions" class="hidden" style="display:flex; gap:10px;">
-                    <button onclick="resetStudio()" style="background:#64748b; color:white;">🔄 전체 초기화</button>
-                    <button class="btn-primary" style="background:#22c55e" onclick="downloadImage()">💾 최종 저장</button>
+                <div id="editActions" class="hidden" style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="resetStudio()" style="background:#64748b; color:white;">🔄 전체 초기화</button>
+                        <button class="btn-primary" style="background:#22c55e" onclick="downloadImage()">💾 사진 저장</button>
+                    </div>
+                    <button id="downloadVideoBtn" class="btn-primary hidden" style="background:#8b5cf6" onclick="downloadVideo()">🎥 영상 저장 (.webm)</button>
                 </div>
             </div>
         </section>
@@ -136,16 +139,20 @@
                 <button class="theme-btn" onclick="changeTheme('winter', this)">☃️ 겨울 그레이</button>
                 <button class="theme-btn" onclick="changeTheme('grad', this)">🎓 졸업 축하</button>
                 <button class="theme-btn" onclick="changeTheme('love', this)">❤️ 사랑 핑크</button>
+                <button class="theme-btn" onclick="changeTheme('celebration', this)">🎉 파티 축하</button>
             </div>
 
             <div class="tool-box">
                 <h3>✍️ 문구 추가</h3>
                 <input type="text" id="textInput" placeholder="여기에 문구를 입력하세요">
-                <select id="fontFamily">
-                    <option value="Gaegu">귀여운 개구체</option>
-                    <option value="Arial">깔끔한 고딕체</option>
-                    <option value="serif">진지한 명조체</option>
-                </select>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <select id="fontFamily" style="flex:1;">
+                        <option value="Gaegu">귀여운 개구체</option>
+                        <option value="Arial">깔끔한 고딕체</option>
+                        <option value="serif">진지한 명조체</option>
+                    </select>
+                    <input type="color" id="textColor" value="#000000" style="width:50px; height:40px; padding:0; border:none; cursor:pointer; background:transparent;">
+                </div>
                 <button class="btn-primary" onclick="addTextObject()">문구 넣기</button>
             </div>
 
@@ -167,7 +174,13 @@
                 <h3 style="color: #6366f1;">🛠️ 선택 항목 조절</h3>
                 <p style="font-size: 14px; margin: 0 0 5px 0;">📏 크기 조절</p>
                 <input type="range" id="sizeSlider" min="20" max="200" value="50" oninput="updateSize(this.value)">
-                <button class="btn-danger" onclick="deleteSelected()">🗑️ 삭제하기 (Delete 키)</button>
+                
+                <div id="textColorEditGroup">
+                    <p style="font-size: 14px; margin: 10px 0 5px 0;">🎨 색상 조절</p>
+                    <input type="color" id="editColor" oninput="updateColor(this.value)" style="width:100%; height:35px; border:none; cursor:pointer; background:transparent;">
+                </div>
+
+                <button class="btn-danger" style="margin-top: 15px;" onclick="deleteSelected()">🗑️ 삭제하기 (Delete 키)</button>
             </div>
         </aside>
     </div>
@@ -181,6 +194,11 @@
         let objects = [], selectedObj = null, isDragging = false;
         let photos = [], currentCut = 0, currentTheme = 'none';
         
+        // 영상 녹화를 위한 변수들
+        let mediaRecorder;
+        let recordedChunks = [];
+        let videoUrl = null;
+
         // 캔버스 자체 내부 해상도 (비율 유지를 위해 고정)
         canvas.width = 400; 
         canvas.height = 680;
@@ -217,7 +235,8 @@
                 autumn: { color: '#fff3e0', icons: ['🍂', '🍁'] },
                 winter: { color: '#f1f5f9', icons: ['☃️', '❄️'] },
                 grad: { color: '#f8fafc', icons: ['🎓', '💐'] },
-                love: { color: '#fff1f2', icons: ['❤️', '💖'] }
+                love: { color: '#fff1f2', icons: ['❤️', '💖'] },
+                celebration: { color: '#fef08a', icons: ['🎉', '🎈'] } // [수정] 축하 테마 구성 추가
             };
 
             const config = themes[currentTheme];
@@ -242,7 +261,34 @@
             }
         }
 
+        // [수정] 캔버스 화면 녹화 시작 기능
+        function startRecording() {
+            if (!mediaRecorder || mediaRecorder.state === "inactive") {
+                const stream = canvas.captureStream(30); // 30 FPS 로 캔버스 스트림 캡쳐
+                recordedChunks = [];
+                try {
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                } catch (e) {
+                    mediaRecorder = new MediaRecorder(stream);
+                }
+                
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    videoUrl = URL.createObjectURL(blob);
+                    document.getElementById('downloadVideoBtn').classList.remove('hidden');
+                };
+                
+                mediaRecorder.start();
+            }
+        }
+
         async function handleCapture() {
+            if (currentCut === 0) startRecording(); // [수정] 첫 번째 컷 촬영 시 영상 녹화 시작
+            
             document.getElementById('captureControls').classList.add('hidden');
             await startCountdown(3);
             takeShot();
@@ -319,13 +365,16 @@
             } else {
                 currentCut = 4;
                 document.getElementById('editActions').classList.remove('hidden');
+                
+                // [수정] 4컷 촬영 완료 시 녹화 종료
+                if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop(); 
+                }
             }
         }
 
         function retake() {
-            // [수정된 부분] 다시 찍기 클릭 시 현재 사진 정보를 초기화합니다.
             photos[currentCut] = null; 
-            
             document.getElementById('confirmControls').classList.add('hidden');
             document.getElementById('captureControls').classList.remove('hidden');
         }
@@ -337,25 +386,22 @@
             const basePhotoY = 50; 
             const photoStep = 140;
 
-            // 1. 찍힌 사진들 렌더링 (값이 존재할 때만 그리기)
+            // 1. 찍힌 사진들 렌더링
             photos.forEach((img, i) => {
                 if(img) ctx.drawImage(img, 30, basePhotoY + (i * photoStep), targetW, targetH);
             });
 
             // 2. 실시간 카메라 미리보기 렌더링 
-            // [수정된 부분] 현재 컷(photos[currentCut])에 아직 사진이 없을 때만 카메라를 켭니다!
             if (currentCut < 4 && !photos[currentCut] && video.readyState >= 2) {
                 const previewY = basePhotoY + (currentCut * photoStep);
                 const { srcX, srcY, srcW, srcH } = getCropCoordinates();
 
                 ctx.save();
-                // 미리보기 좌우 반전 거울 효과
                 ctx.translate(30 + targetW, previewY);
                 ctx.scale(-1, 1);
                 ctx.drawImage(video, srcX, srcY, srcW, srcH, 0, 0, targetW, targetH);
                 ctx.restore();
 
-                // 촬영 포커스 테두리
                 ctx.strokeStyle = "#6366f1";
                 ctx.lineWidth = 3;
                 ctx.strokeRect(30, previewY, targetW, targetH);
@@ -367,7 +413,8 @@
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.font = `${obj.size}px ${obj.font || 'Arial'}`;
-                ctx.fillStyle = '#000'; 
+                // [수정] 오브젝트의 개별 색상 속성 적용 (기본값 검정)
+                ctx.fillStyle = obj.color || '#000000'; 
 
                 if(selectedObj === obj) {
                     ctx.strokeStyle = "#6366f1"; ctx.lineWidth = 2;
@@ -384,8 +431,10 @@
         function addTextObject() {
             const val = document.getElementById('textInput').value;
             const font = document.getElementById('fontFamily').value;
+            const color = document.getElementById('textColor').value; // [수정] 색상 값 가져오기
+            
             if(val) {
-                objects.push({type:'text', content:val, x:200, y:canvas.height - 60, size:40, font: font});
+                objects.push({type:'text', content:val, x:200, y:canvas.height - 60, size:40, font: font, color: color});
                 document.getElementById('textInput').value = '';
                 document.getElementById('editActions').classList.remove('hidden');
             }
@@ -400,6 +449,13 @@
             if(selectedObj) selectedObj.size = parseInt(v);
         }
 
+        // [수정] 선택된 글자 색상 업데이트 함수
+        function updateColor(v) {
+            if(selectedObj && selectedObj.type === 'text') {
+                selectedObj.color = v;
+            }
+        }
+
         function deleteSelected() {
             if(selectedObj) {
                 objects = objects.filter(o => o !== selectedObj);
@@ -409,14 +465,13 @@
         }
 
         // ==========================================
-        // [버그 수정] 터치 및 마우스 이벤트 통합 지원 (아이패드/모바일 완벽 호환)
+        // 터치 및 마우스 이벤트 통합 지원 (아이패드/모바일 완벽 호환)
         // ==========================================
         function getEventPos(e) {
             const rect = canvas.getBoundingClientRect();
             let clientX = e.clientX;
             let clientY = e.clientY;
             
-            // 터치 이벤트인 경우
             if (e.touches && e.touches.length > 0) {
                 clientX = e.touches[0].clientX;
                 clientY = e.touches[0].clientY;
@@ -445,7 +500,16 @@
                 isDragging = true;
                 document.getElementById('selectedControls').classList.remove('hidden');
                 document.getElementById('sizeSlider').value = selectedObj.size;
-                if(e.cancelable) e.preventDefault(); // 아이패드 스크롤 간섭 방지
+                
+                // [수정] 선택된 객체가 글자(text)인 경우에만 색상 조절 UI를 보여줌
+                if (selectedObj.type === 'text') {
+                    document.getElementById('textColorEditGroup').style.display = 'block';
+                    document.getElementById('editColor').value = selectedObj.color || '#000000';
+                } else {
+                    document.getElementById('textColorEditGroup').style.display = 'none';
+                }
+                
+                if(e.cancelable) e.preventDefault();
             } else {
                 document.getElementById('selectedControls').classList.add('hidden');
             }
@@ -453,7 +517,7 @@
 
         function handlePointerMove(e) {
             if(isDragging && selectedObj) {
-                if(e.cancelable) e.preventDefault(); // 드래그 시 화면 스크롤 방지
+                if(e.cancelable) e.preventDefault();
                 const pos = getEventPos(e);
                 selectedObj.x = pos.x;
                 selectedObj.y = pos.y;
@@ -464,7 +528,6 @@
             isDragging = false; 
         }
 
-        // 마우스 및 터치 이벤트 리스너 등록
         canvas.addEventListener('mousedown', handlePointerDown);
         canvas.addEventListener('touchstart', handlePointerDown, { passive: false });
         
@@ -477,6 +540,12 @@
 
         function resetStudio() {
             photos = []; objects = []; currentCut = 0;
+            
+            // [수정] 초기화 시 녹화 강제 종료 및 URL 해제
+            if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+            videoUrl = null;
+            document.getElementById('downloadVideoBtn').classList.add('hidden');
+
             document.getElementById('editActions').classList.add('hidden');
             document.getElementById('captureControls').classList.remove('hidden');
             document.getElementById('cutText').innerText = "첫 번째 컷";
@@ -486,6 +555,15 @@
             const link = document.createElement('a');
             link.download = 'my-four-cut.png';
             link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // [수정] 영상 다운로드 함수 추가
+        function downloadVideo() {
+            if (!videoUrl) return;
+            const link = document.createElement('a');
+            link.download = 'my-four-cut-video.webm';
+            link.href = videoUrl;
             link.click();
         }
 
