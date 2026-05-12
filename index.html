@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 테마 스튜디오 Pro</title>
+    <style>
+        :root { --accent: #6366f1; }
+        body { margin: 0; font-family: 'Pretendard', sans-serif; background: #f1f5f9; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .app-container { display: flex; width: 95vw; height: 90vh; background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
+        .editor-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: #f8fafc; }
+        .canvas-wrapper { position: relative; width: 100%; max-width: 800px; aspect-ratio: 4/3; background: #000; border-radius: 20px; overflow: hidden; }
+        video, canvas { position: absolute; width: 100%; height: 100%; object-fit: contain; }
+        #mainCanvas { z-index: 2; cursor: crosshair; }
+        .control-panel { width: 380px; padding: 25px; border-left: 1px solid #eee; overflow-y: auto; }
+        
+        .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+        .theme-btn { padding: 10px; border: 2px solid #eee; background: white; border-radius: 10px; cursor: pointer; font-size: 13px; }
+        .theme-btn.active { border-color: var(--accent); background: #f5f3ff; font-weight: bold; }
+        
+        .tool-box { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        .btn-primary { background: var(--accent); color: white; }
+        .hidden { display: none !important; }
+        
+        .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; font-size: 24px; text-align: center; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <section class="editor-view">
+            <div class="canvas-wrapper">
+                <video id="cameraView" autoplay playsinline muted></video>
+                <canvas id="mainCanvas"></canvas>
+            </div>
+            <div style="margin-top:20px; display:flex; gap:10px; width: 400px;">
+                <button id="captureBtn" class="btn-primary" onclick="takePhoto()">📸 사진 촬영</button>
+                <div id="editActions" class="hidden" style="display:flex; gap:10px; width:100%;">
+                    <button onclick="resetStudio()" style="background:#64748b; color:white;">🔄 다시 찍기</button>
+                    <button class="btn-primary" style="background:#22c55e" onclick="downloadImage()">💾 저장</button>
+                </div>
+            </div>
+        </section>
+
+        <aside class="control-panel">
+            <h3>🖼️ 테마 프레임 (아이콘 포함)</h3>
+            <div class="theme-grid">
+                <button class="theme-btn active" onclick="setTheme('none', this)">기본</button>
+                <button class="theme-btn" onclick="setTheme('love', this)">💖 사랑 (하트)</button>
+                <button class="theme-btn" onclick="setTheme('grad', this)">🎓 졸업 (학사모/곰)</button>
+                <button class="theme-btn" onclick="setTheme('spring', this)">🌸 봄 (벚꽃)</button>
+                <button class="theme-btn" onclick="setTheme('summer', this)">🌊 여름 (파도)</button>
+            </div>
+
+            <div class="tool-box">
+                <h3>✍️ 문구 설정</h3>
+                <input type="text" id="textInput" placeholder="문구 입력">
+                <select id="fontFamily">
+                    <option value="Arial">기본체</option>
+                    <option value="serif">명조체</option>
+                    <option value="cursive">필기체</option>
+                </select>
+                <button class="btn-primary" onclick="addTextObject()" style="margin-top:8px">문구 추가</button>
+            </div>
+
+            <div id="sizeControl" class="tool-box hidden">
+                <h3 style="margin:0 0 10px 0;">📏 크기 조절</h3>
+                <input type="range" id="sizeSlider" min="20" max="300" value="80" oninput="updateSize(this.value)">
+            </div>
+
+            <h3>⭐ 스티커</h3>
+            <div class="sticker-grid">
+                <span onclick="addSticker('❤️')">❤️</span> <span onclick="addSticker('✨')">✨</span>
+                <span onclick="addSticker('🔥')">🔥</span> <span onclick="addSticker('🍀')">🍀</span>
+                <span onclick="addSticker('🎀')">🎀</span> <span onclick="addSticker('🐱')">🐱</span>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        const video = document.getElementById('cameraView');
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        let objects = [], selectedObj = null, isDragging = false;
+        let bgPhoto = null, currentTheme = 'none';
+
+        canvas.width = 800; canvas.height = 600;
+
+        // 카메라 시작
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+                video.srcObject = stream;
+            } catch (e) { alert("카메라를 켤 수 없습니다."); }
+        }
+
+        // 테두리 그리기 함수
+        function drawFrame() {
+            if(currentTheme === 'none') return;
+
+            const margin = 40;
+            const step = 80; // 아이콘 간격
+
+            // 테마별 설정
+            const themes = {
+                love: { color: '#ffe4e6', icons: ['❤️', '💖', '💕'] },
+                grad: { color: '#f8fafc', icons: ['🎓', '🧸', '📜'] },
+                spring: { color: '#f0fdf4', icons: ['🌸', '🌷', '🌱'] },
+                summer: { color: '#e0f2fe', icons: ['🌊', '☀️', '🐚'] }
+            };
+
+            const config = themes[currentTheme];
+            
+            // 테두리 배경선
+            ctx.lineWidth = 60;
+            ctx.strokeStyle = config.color;
+            ctx.strokeRect(30, 30, 740, 540);
+
+            // 테두리 아이콘 배치
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            
+            // 상단 & 하단
+            for(let x = 40; x <= 760; x += step) {
+                ctx.fillText(config.icons[x % config.icons.length], x, 45);
+                ctx.fillText(config.icons[(x+1) % config.icons.length], x, 575);
+            }
+            // 좌측 & 우측
+            for(let y = 120; y <= 480; y += step) {
+                ctx.fillText(config.icons[y % config.icons.length], 45, y);
+                ctx.fillText(config.icons[(y+1) % config.icons.length], 755, y);
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if(bgPhoto) ctx.drawImage(bgPhoto, 0, 0, 800, 600);
+            
+            drawFrame(); // 테마 프레임 그리기
+
+            objects.forEach(obj => {
+                ctx.save();
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                if(selectedObj === obj) { ctx.shadowBlur = 15; ctx.shadowColor = "#6366f1"; }
+                ctx.font = `${obj.size}px ${obj.font || 'Arial'}`;
+                if(obj.type === 'text') {
+                    ctx.fillStyle = "white"; ctx.strokeStyle="black"; ctx.lineWidth=obj.size/15;
+                    ctx.strokeText(obj.content, obj.x, obj.y);
+                }
+                ctx.fillText(obj.content, obj.x, obj.y);
+                ctx.restore();
+            });
+            requestAnimationFrame(render);
+        }
+
+        // 테마 변경
+        function setTheme(theme, btn) {
+            currentTheme = theme;
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // --- 기존 기능 유지 ---
+        function takePhoto() {
+            bgPhoto = document.createElement('canvas');
+            bgPhoto.width = 800; bgPhoto.height = 600;
+            bgPhoto.getContext('2d').drawImage(video, 0, 0, 800, 600);
+            video.classList.add('hidden');
+            document.getElementById('captureBtn').classList.add('hidden');
+            document.getElementById('editActions').classList.remove('hidden');
+        }
+
+        function resetStudio() { bgPhoto = null; objects = []; video.classList.remove('hidden'); document.getElementById('captureBtn').classList.remove('hidden'); document.getElementById('editActions').classList.add('hidden'); }
+        
+        function addTextObject() {
+            const val = document.getElementById('textInput').value;
+            if(val) {
+                const newObj = {type:'text', content:val, x:400, y:300, size:60, font: document.getElementById('fontFamily').value};
+                objects.push(newObj);
+                selectedObj = newObj;
+                document.getElementById('sizeControl').classList.remove('hidden');
+            }
+        }
+
+        function addSticker(s) {
+            const newObj = {type:'sticker', content:s, x:400, y:300, size:100};
+            objects.push(newObj);
+            selectedObj = newObj;
+            document.getElementById('sizeControl').classList.remove('hidden');
+        }
+
+        function updateSize(v) { if(selectedObj) selectedObj.size = v; }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const ev = e.touches ? e.touches[0] : e;
+            return { x: (ev.clientX - rect.left) * (800 / rect.width), y: (ev.clientY - rect.top) * (600 / rect.height) };
+        }
+
+        canvas.onmousedown = (e) => {
+            const pos = getPos(e);
+            for(let i=objects.length-1; i>=0; i--) {
+                const o = objects[i];
+                if(Math.sqrt((pos.x-o.x)**2 + (pos.y-o.y)**2) < o.size/1.2) {
+                    selectedObj = o; isDragging = true;
+                    document.getElementById('sizeControl').classList.remove('hidden');
+                    document.getElementById('sizeSlider').value = o.size;
+                    objects.push(objects.splice(i, 1)[0]); return;
+                }
+            }
+            selectedObj = null;
+            document.getElementById('sizeControl').classList.add('hidden');
+        };
+        window.onmousemove = (e) => { if(isDragging && selectedObj) { const pos = getPos(e); selectedObj.x = pos.x; selectedObj.y = pos.y; }};
+        window.onmouseup = () => isDragging = false;
+        function downloadImage() { const link = document.createElement('a'); link.download = 'studio.png'; link.href = canvas.toDataURL(); link.click(); }
+
+        startCamera(); render();
+    </script>
+</body>
+</html>
