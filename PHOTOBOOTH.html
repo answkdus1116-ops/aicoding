@@ -3,48 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎨 네컷 스튜디오 Pro - 커스텀 버전</title>
+    <title>🎨 인생네컷 스튜디오 Pro</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
 
         :root { --accent: #6366f1; }
-        body { margin: 0; font-family: 'Gaegu', cursive; background: #f1f5f9; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        body { margin: 0; font-family: 'Gaegu', 'Pretendard', sans-serif; background: #f1f5f9; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .app-container { display: flex; width: 95vw; height: 90vh; background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
         
         .editor-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: #f8fafc; position: relative; }
         
-        /* 캔버스 래퍼: 네컷 규격 */
-        .canvas-wrapper { position: relative; width: 400px; height: 600px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: 0.3s; }
+        /* 캔버스 래퍼: 네컷 규격 (가로 400, 세로 650) */
+        .canvas-wrapper { position: relative; width: 400px; height: 650px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: 0.3s; }
         
-        /* 카메라 미리보기: 촬영 중에만 보이도록 설정 */
-        #cameraView { position: absolute; width: 360px; height: 130px; left: 20px; object-fit: cover; z-index: 5; border-radius: 5px; border: 2px solid var(--accent); display: none; }
+        /* 카메라 미리보기 */
+        #cameraView { position: absolute; width: 340px; height: 130px; left: 30px; object-fit: cover; z-index: 5; border-radius: 5px; border: 3px solid var(--accent); display: none; }
         #mainCanvas { position: absolute; width: 100%; height: 100%; z-index: 2; cursor: crosshair; }
         
-        #countdown { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 100px; color: var(--accent); font-weight: bold; z-index: 10; display: none; }
+        #countdown { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 100px; color: var(--accent); font-weight: bold; z-index: 10; display: none; text-shadow: 2px 2px 10px white; }
 
         .control-panel { width: 380px; padding: 25px; border-left: 1px solid #eee; overflow-y: auto; }
         .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
-        .theme-btn { padding: 10px; border: 2px solid #eee; background: white; border-radius: 10px; cursor: pointer; font-family: 'Gaegu', cursive; font-size: 16px; }
+        .theme-btn { padding: 10px; border: 2px solid #eee; background: white; border-radius: 10px; cursor: pointer; font-family: inherit; font-size: 16px; font-weight: bold; }
         .theme-btn.active { border-color: var(--accent); background: #f5f3ff; color: var(--accent); }
 
         .tool-box { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .tool-box h3 { margin-top: 0; font-size: 18px; color: #1e293b; }
         input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
-        button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; font-family: 'Gaegu', cursive; font-size: 18px; }
+        button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; font-family: inherit; font-size: 16px; }
         .btn-primary { background: var(--accent); color: white; margin-top: 10px; }
         .btn-danger { background: #ef4444; color: white; margin-top: 5px; }
         
-        .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; font-size: 26px; text-align: center; }
-        .sticker-item { cursor: pointer; transition: transform 0.2; }
-        .sticker-item:hover { transform: scale(1.2); }
+        .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; font-size: 26px; text-align: center; margin-bottom: 15px; }
+        .sticker-item { cursor: pointer; transition: transform 0.2s; }
+        .sticker-item:hover { transform: scale(1.3); }
         .hidden { display: none !important; }
-        
-        /* 테마별 배경색 클래스 */
-        .bg-white { background-color: #ffffff !important; }
-        .bg-spring { background-color: #fff0f5 !important; }
-        .bg-summer { background-color: #e0f7fa !important; }
-        .bg-autumn { background-color: #fff3e0 !important; }
-        .bg-winter { background-color: #f1f5f9 !important; }
-        .bg-love { background-color: #fff1f2 !important; }
     </style>
 </head>
 <body>
@@ -74,6 +67,27 @@
         <aside class="control-panel">
             <h3>🖼️ 배경 테마</h3>
             <div class="theme-grid">
-                <button class="theme-btn active" onclick="changeTheme('white', this)">🤍 기본 화이트</button>
+                <button class="theme-btn active" onclick="changeTheme('none', this)">🤍 기본 화이트</button>
                 <button class="theme-btn" onclick="changeTheme('spring', this)">🌸 봄봄 핑크</button>
-                <button class="theme-btn" onclick="changeTheme
+                <button class="theme-btn" onclick="changeTheme('summer', this)">🌻 여름 블루</button>
+                <button class="theme-btn" onclick="changeTheme('autumn', this)">🍂 가을 오렌지</button>
+                <button class="theme-btn" onclick="changeTheme('winter', this)">☃️ 겨울 그레이</button>
+                <button class="theme-btn" onclick="changeTheme('love', this)">❤️ 사랑 핑크</button>
+            </div>
+
+            <div class="tool-box">
+                <h3>✍️ 문구 설정</h3>
+                <input type="text" id="textInput" placeholder="문구 입력">
+                <select id="fontFamily">
+                    <option value="Gaegu">귀여운 개구체</option>
+                    <option value="Arial">깔끔한 기본체</option>
+                    <option value="serif">진지한 명조체</option>
+                </select>
+                <button class="btn-primary" onclick="addTextObject()">문구 추가</button>
+            </div>
+
+            <h3>⭐ 스티커</h3>
+            <div class="sticker-grid">
+                <span class="sticker-item" onclick="addSticker('❤️')">❤️</span>
+                <span class="sticker-item" onclick="addSticker('✨')">✨</span>
+                <span class="sticker-item"
