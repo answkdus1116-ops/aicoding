@@ -4,67 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎨 테마 스튜디오 Pro</title>
-  <style>
-    :root { 
-        --accent: #6366f1; 
-        --spring: #ff85a2;
-        --summer: #0ea5e9;
-        --autumn: #f59e0b;
-        --winter: #94a3b8;
-    }
+    <style>
+        :root { 
+            --accent: #6366f1; 
+        }
 
-    body { margin: 0; font-family: 'Pretendard', sans-serif; background: #f1f5f9; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-    
-    .app-container { display: flex; width: 95vw; height: 90vh; background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
-    
-    .editor-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: #f8fafc; }
-    
-    /* 캔버스 래퍼: 여기에 테두리가 생깁니다 */
-    .canvas-wrapper { 
-        position: relative; 
-        width: 100%; 
-        max-width: 800px; 
-        aspect-ratio: 4/3; 
-        background: #000; 
-        border-radius: 20px; 
-        overflow: hidden;
-        box-sizing: border-box;
-        transition: all 0.3s ease;
-    }
+        body { margin: 0; font-family: 'Pretendard', sans-serif; background: #f1f5f9; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        
+        .app-container { display: flex; width: 95vw; height: 90vh; background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
+        
+        .editor-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: #f8fafc; }
+        
+        .canvas-wrapper { 
+            position: relative; 
+            width: 100%; 
+            max-width: 800px; 
+            aspect-ratio: 4/3; 
+            background: #000; 
+            border-radius: 20px; 
+            overflow: hidden;
+            box-sizing: border-box;
+        }
 
-    video, canvas { position: absolute; width: 100%; height: 100%; object-fit: contain; }
-    #mainCanvas { z-index: 2; cursor: crosshair; }
-    
-    .control-panel { width: 380px; padding: 25px; border-left: 1px solid #eee; overflow-y: auto; }
-    
-    /* 테마 버튼 그리드 */
-    .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
-    .theme-btn { padding: 10px; border: 2px solid #eee; background: white; border-radius: 10px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px; }
-    .theme-btn.active { border-color: var(--accent); background: #f5f3ff; font-weight: bold; }
-    
-    /* 계절 및 테마별 테두리 설정 (border-image 활용) */
-    .frame-spring { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E🌸%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E🍀%3C/text%3E%3C/svg%3E") 30 round; background-color: #fff0f5 !important; }
-    .frame-summer { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E🌻%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E🌊%3C/text%3E%3C/svg%3E") 30 round; background-color: #e0f7fa !important; }
-    .frame-autumn { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E🍂%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E🍁%3C/text%3E%3C/svg%3E") 30 round; background-color: #fff3e0 !important; }
-    .frame-winter { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E☃️%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E❄️%3C/text%3E%3C/svg%3E") 30 round; background-color: #f1f5f9 !important; }
-    .frame-grad { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E🎓%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E💐%3C/text%3E%3C/svg%3E") 30 round; background-color: #ffffff !important; }
-    .frame-love { border: 25px solid transparent; border-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='50' font-size='40'%3E💖%3C/text%3E%3Ctext x='50' y='90' font-size='40'%3E💝%3C/text%3E%3C/svg%3E") 30 round; background-color: #fff1f2 !important; }
-
-    .tool-box { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
-    .tool-box p { margin: 0 0 10px 0; font-size: 14px; font-weight: bold; color: #64748b; }
-    
-    input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-    button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
-    .btn-primary { background: var(--accent); color: white; margin-top: 10px; }
-    .btn-primary:hover { background: #4f46e5; }
-    
-    .hidden { display: none !important; }
-    
-    /* 스티커 그리드: 더 많아진 스티커 대응 */
-    .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; font-size: 26px; text-align: center; }
-    .sticker-item { cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; padding: 5px; border-radius: 8px; }
-    .sticker-item:hover { transform: scale(1.3); background: #eee; }
-</style>
+        video, canvas { position: absolute; width: 100%; height: 100%; object-fit: contain; }
+        #mainCanvas { z-index: 2; cursor: crosshair; }
+        
+        .control-panel { width: 380px; padding: 25px; border-left: 1px solid #eee; overflow-y: auto; }
+        
+        /* 버튼 그리드 스타일 */
+        .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+        .theme-btn { padding: 10px; border: 2px solid #eee; background: white; border-radius: 10px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px; font-family: inherit; font-weight: bold; }
+        .theme-btn.active { border-color: var(--accent); background: #f5f3ff; color: var(--accent); }
+        
+        .tool-box { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .tool-box h3 { margin-top: 0; font-size: 16px; color: #1e293b; }
+        
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        .btn-primary { background: var(--accent); color: white; margin-top: 10px; }
+        .btn-primary:hover { background: #4f46e5; }
+        
+        .hidden { display: none !important; }
+        
+        .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; font-size: 26px; text-align: center; }
+        .sticker-item { cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; padding: 5px; border-radius: 8px; }
+        .sticker-item:hover { transform: scale(1.3); background: #eee; }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -83,25 +68,16 @@
         </section>
 
         <aside class="control-panel">
-            <h3>🖼️ 테마 프레임 (아이콘 포함)</h3>
-           <div class="controls">
-    <button onclick="changeFrame('none')">기본</button>
-    <button onclick="changeFrame('spring')">🌸 봄봄</button>
-    <button onclick="changeFrame('summer')">🌻 여름</button>
-    <button onclick="changeFrame('autumn')">🍂 가을</button>
-    <button onclick="changeFrame('winter')">☃️ 겨울</button>
-    <button onclick="changeFrame('grad')">🎓 졸업</button>
-    <button onclick="changeFrame('love')">❤️ 사랑</button>
-</div>
-
-<div class="controls">
-    <p>🎨 스티커로 사진을 더 예쁘게!</p>
-    <div id="sticker-list">
-        <button onclick="addSticker('❤️')">❤️</button>
-        <button onclick="addSticker('💖')">💖</button>
-        <button onclick="addSticker('✨')">✨</button>
-        </div>
-</div>
+            <h3>🖼️ 테마 프레임 선택</h3>
+            <div class="theme-grid">
+                <button class="theme-btn active" onclick="changeFrame('none', this)">기본</button>
+                <button class="theme-btn" onclick="changeFrame('spring', this)">🌸 봄봄</button>
+                <button class="theme-btn" onclick="changeFrame('summer', this)">🌻 여름</button>
+                <button class="theme-btn" onclick="changeFrame('autumn', this)">🍂 가을</button>
+                <button class="theme-btn" onclick="changeFrame('winter', this)">☃️ 겨울</button>
+                <button class="theme-btn" onclick="changeFrame('grad', this)">🎓 졸업</button>
+                <button class="theme-btn" onclick="changeFrame('love', this)">❤️ 사랑</button>
+            </div>
 
             <div class="tool-box">
                 <h3>✍️ 문구 설정</h3>
@@ -115,15 +91,22 @@
             </div>
 
             <div id="sizeControl" class="tool-box hidden">
-                <h3 style="margin:0 0 10px 0;">📏 크기 조절</h3>
+                <h3>📏 크기 조절</h3>
                 <input type="range" id="sizeSlider" min="20" max="300" value="80" oninput="updateSize(this.value)">
             </div>
 
-            <h3>⭐ 스티커</h3>
+            <h3>⭐ 스티커 추가</h3>
             <div class="sticker-grid">
-                <span onclick="addSticker('❤️')">❤️</span> <span onclick="addSticker('✨')">✨</span>
-                <span onclick="addSticker('🔥')">🔥</span> <span onclick="addSticker('🍀')">🍀</span>
-                <span onclick="addSticker('🎀')">🎀</span> <span onclick="addSticker('🐱')">🐱</span>
+                <span class="sticker-item" onclick="addSticker('❤️')">❤️</span>
+                <span class="sticker-item" onclick="addSticker('💖')">💖</span>
+                <span class="sticker-item" onclick="addSticker('✨')">✨</span>
+                <span class="sticker-item" onclick="addSticker('🎀')">🎀</span>
+                <span class="sticker-item" onclick="addSticker('🍀')">🍀</span>
+                <span class="sticker-item" onclick="addSticker('🐥')">🐥</span>
+                <span class="sticker-item" onclick="addSticker('🐶')">🐶</span>
+                <span class="sticker-item" onclick="addSticker('🐻')">🐻</span>
+                <span class="sticker-item" onclick="addSticker('🍦')">🍦</span>
+                <span class="sticker-item" onclick="addSticker('🎈')">🎈</span>
             </div>
         </aside>
     </div>
@@ -137,7 +120,6 @@
 
         canvas.width = 800; canvas.height = 600;
 
-        // 카메라 시작
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
@@ -145,38 +127,40 @@
             } catch (e) { alert("카메라를 켤 수 없습니다."); }
         }
 
-        // 테두리 그리기 함수
+        // 테마 변경 함수 (이름을 버튼과 맞춤)
+        function changeFrame(theme, btn) {
+            currentTheme = theme;
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+        }
+
+        // 테두리 그리기 로직 (모든 계절 추가)
         function drawFrame() {
             if(currentTheme === 'none') return;
 
-            const margin = 40;
-            const step = 80; // 아이콘 간격
-
-            // 테마별 설정
+            const step = 80; 
             const themes = {
                 love: { color: '#ffe4e6', icons: ['❤️', '💖', '💕'] },
                 grad: { color: '#f8fafc', icons: ['🎓', '🧸', '📜'] },
-                spring: { color: '#f0fdf4', icons: ['🌸', '🌷', '🌱'] },
-                summer: { color: '#e0f2fe', icons: ['🌊', '☀️', '🐚'] }
+                spring: { color: '#fdf2f8', icons: ['🌸', '🌷', '🌱'] },
+                summer: { color: '#f0f9ff', icons: ['🌻', '☀️', '🌊'] },
+                autumn: { color: '#fff7ed', icons: ['🍂', '🍁', '🍄'] },
+                winter: { color: '#f1f5f9', icons: ['☃️', '❄️', '🧣'] }
             };
 
             const config = themes[currentTheme];
             
-            // 테두리 배경선
             ctx.lineWidth = 60;
             ctx.strokeStyle = config.color;
             ctx.strokeRect(30, 30, 740, 540);
 
-            // 테두리 아이콘 배치
             ctx.font = "30px Arial";
             ctx.textAlign = "center";
             
-            // 상단 & 하단
             for(let x = 40; x <= 760; x += step) {
                 ctx.fillText(config.icons[x % config.icons.length], x, 45);
                 ctx.fillText(config.icons[(x+1) % config.icons.length], x, 575);
             }
-            // 좌측 & 우측
             for(let y = 120; y <= 480; y += step) {
                 ctx.fillText(config.icons[y % config.icons.length], 45, y);
                 ctx.fillText(config.icons[(y+1) % config.icons.length], 755, y);
@@ -187,7 +171,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if(bgPhoto) ctx.drawImage(bgPhoto, 0, 0, 800, 600);
             
-            drawFrame(); // 테마 프레임 그리기
+            drawFrame();
 
             objects.forEach(obj => {
                 ctx.save();
@@ -197,6 +181,7 @@
                 if(obj.type === 'text') {
                     ctx.fillStyle = "white"; ctx.strokeStyle="black"; ctx.lineWidth=obj.size/15;
                     ctx.strokeText(obj.content, obj.x, obj.y);
+                    ctx.fillStyle = "black";
                 }
                 ctx.fillText(obj.content, obj.x, obj.y);
                 ctx.restore();
@@ -204,14 +189,6 @@
             requestAnimationFrame(render);
         }
 
-        // 테마 변경
-        function setTheme(theme, btn) {
-            currentTheme = theme;
-            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
-
-        // --- 기존 기능 유지 ---
         function takePhoto() {
             bgPhoto = document.createElement('canvas');
             bgPhoto.width = 800; bgPhoto.height = 600;
