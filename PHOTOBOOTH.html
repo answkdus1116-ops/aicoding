@@ -194,12 +194,15 @@
         let objects = [], selectedObj = null, isDragging = false;
         let photos = [], currentCut = 0, currentTheme = 'none';
         
-        // 영상 녹화를 위한 변수들
+        // 동영상 생성용 변수 추가
+        let cutFrames = [[], [], [], []];
         let mediaRecorder;
         let recordedChunks = [];
-        let videoUrl = null;
+        let isRecordingFinal = false;
+        let finalFrameIndex = 0;
+        let lastRenderTime = 0;
 
-        // 캔버스 자체 내부 해상도 (비율 유지를 위해 고정)
+        // 캔버스 자체 내부 해상도
         canvas.width = 400; 
         canvas.height = 680;
 
@@ -210,7 +213,6 @@
         // 카메라 시작
         async function startCamera() {
             try {
-                // 모바일 최적화를 위해 width/height 제약조건 완화
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode: 'user' } 
                 });
@@ -236,7 +238,7 @@
                 winter: { color: '#f1f5f9', icons: ['☃️', '❄️'] },
                 grad: { color: '#f8fafc', icons: ['🎓', '💐'] },
                 love: { color: '#fff1f2', icons: ['❤️', '💖'] },
-                celebration: { color: '#fef08a', icons: ['🎉', '🎈'] } // [수정] 축하 테마 구성 추가
+                celebration: { color: '#fef08a', icons: ['🎉', '🎈'] }
             };
 
             const config = themes[currentTheme];
@@ -261,34 +263,7 @@
             }
         }
 
-        // [수정] 캔버스 화면 녹화 시작 기능
-        function startRecording() {
-            if (!mediaRecorder || mediaRecorder.state === "inactive") {
-                const stream = canvas.captureStream(30); // 30 FPS 로 캔버스 스트림 캡쳐
-                recordedChunks = [];
-                try {
-                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-                } catch (e) {
-                    mediaRecorder = new MediaRecorder(stream);
-                }
-                
-                mediaRecorder.ondataavailable = e => {
-                    if (e.data.size > 0) recordedChunks.push(e.data);
-                };
-                
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                    videoUrl = URL.createObjectURL(blob);
-                    document.getElementById('downloadVideoBtn').classList.remove('hidden');
-                };
-                
-                mediaRecorder.start();
-            }
-        }
-
         async function handleCapture() {
-            if (currentCut === 0) startRecording(); // [수정] 첫 번째 컷 촬영 시 영상 녹화 시작
-            
             document.getElementById('captureControls').classList.add('hidden');
             await startCountdown(3);
             takeShot();
@@ -299,10 +274,32 @@
                 countdownEl.style.display = 'block';
                 let count = sec;
                 countdownEl.innerText = count;
+                
+                // [수정] 3초 카운트다운 동안 비디오 프레임을 수집하여 배열에 저장
+                cutFrames[currentCut] = [];
+                let captureInterval = setInterval(() => {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = targetW; 
+                    tempCanvas.height = targetH;
+                    const tCtx = tempCanvas.getContext('2d');
+                    
+                    if (video.videoWidth > 0) {
+                        const { srcX, srcY, srcW, srcH } = getCropCoordinates();
+                        tCtx.translate(targetW, 0);
+                        tCtx.scale(-1, 1);
+                        tCtx.drawImage(video, srcX, srcY, srcW, srcH, 0, 0, targetW, targetH);
+                    } else {
+                        tCtx.fillStyle = '#ccc';
+                        tCtx.fillRect(0, 0, targetW, targetH);
+                    }
+                    cutFrames[currentCut].push(tempCanvas);
+                }, 33); // 약 30fps 속도로 캡처
+
                 const timer = setInterval(() => {
                     count--;
                     if (count <= 0) {
                         clearInterval(timer);
+                        clearInterval(captureInterval); // 프레임 수집 종료
                         countdownEl.style.display = 'none';
                         resolve();
                     }
@@ -311,7 +308,6 @@
             });
         }
 
-        // 공통 크롭 로직 (비디오 가로, 세로 비율에 맞춰 중앙을 잘라냄)
         function getCropCoordinates() {
             const sourceW = video.videoWidth;
             const sourceH = video.videoHeight;
@@ -335,24 +331,10 @@
         }
 
         function takeShot() {
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = targetW; 
-            tempCanvas.height = targetH;
-            const tCtx = tempCanvas.getContext('2d');
-            
-            if (video.videoWidth > 0) {
-                const { srcX, srcY, srcW, srcH } = getCropCoordinates();
-                
-                // 좌우 반전해서 저장 (거울 모드)
-                tCtx.translate(targetW, 0);
-                tCtx.scale(-1, 1);
-                tCtx.drawImage(video, srcX, srcY, srcW, srcH, 0, 0, targetW, targetH);
-            } else {
-                tCtx.fillStyle = '#ccc';
-                tCtx.fillRect(0, 0, targetW, targetH);
+            // [수정] 수집된 프레임 중 가장 마지막 프레임을 정지된 사진으로 사용
+            if (cutFrames[currentCut] && cutFrames[currentCut].length > 0) {
+                photos[currentCut] = cutFrames[currentCut][cutFrames[currentCut].length - 1];
             }
-            
-            photos[currentCut] = tempCanvas;
             document.getElementById('confirmControls').classList.remove('hidden');
         }
 
@@ -365,34 +347,42 @@
             } else {
                 currentCut = 4;
                 document.getElementById('editActions').classList.remove('hidden');
-                
-                // [수정] 4컷 촬영 완료 시 녹화 종료
-                if (mediaRecorder && mediaRecorder.state !== "inactive") {
-                    mediaRecorder.stop(); 
-                }
+                document.getElementById('downloadVideoBtn').classList.remove('hidden');
             }
         }
 
         function retake() {
             photos[currentCut] = null; 
+            cutFrames[currentCut] = [];
             document.getElementById('confirmControls').classList.add('hidden');
             document.getElementById('captureControls').classList.remove('hidden');
         }
 
-        function render() {
+        function render(time) {
+            time = time || performance.now();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawFrame(); // 배경 및 테두리 그리기
+            drawFrame();
 
             const basePhotoY = 50; 
             const photoStep = 140;
 
-            // 1. 찍힌 사진들 렌더링
-            photos.forEach((img, i) => {
-                if(img) ctx.drawImage(img, 30, basePhotoY + (i * photoStep), targetW, targetH);
-            });
+            // 1. 찍힌 사진들 또는 녹화용 움직이는 비디오 프레임 렌더링
+            for(let i=0; i<4; i++) {
+                let imgToDraw = photos[i];
+                
+                // 영상 저장 중일 때는 정지 이미지가 아닌 움직이는 프레임을 그림
+                if (isRecordingFinal && cutFrames[i] && cutFrames[i].length > 0) {
+                    let frameIdx = Math.min(finalFrameIndex, cutFrames[i].length - 1);
+                    imgToDraw = cutFrames[i][frameIdx];
+                }
+
+                if(imgToDraw) {
+                    ctx.drawImage(imgToDraw, 30, basePhotoY + (i * photoStep), targetW, targetH);
+                }
+            }
 
             // 2. 실시간 카메라 미리보기 렌더링 
-            if (currentCut < 4 && !photos[currentCut] && video.readyState >= 2) {
+            if (!isRecordingFinal && currentCut < 4 && !photos[currentCut] && video.readyState >= 2) {
                 const previewY = basePhotoY + (currentCut * photoStep);
                 const { srcX, srcY, srcW, srcH } = getCropCoordinates();
 
@@ -407,16 +397,16 @@
                 ctx.strokeRect(30, previewY, targetW, targetH);
             }
 
-            // 3. 문구 및 스티커 렌더링
+            // 3. 문구 및 스티커 렌더링 (영상 저장 중에도 그대로 그려짐)
             objects.forEach(obj => {
                 ctx.save();
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.font = `${obj.size}px ${obj.font || 'Arial'}`;
-                // [수정] 오브젝트의 개별 색상 속성 적용 (기본값 검정)
                 ctx.fillStyle = obj.color || '#000000'; 
 
-                if(selectedObj === obj) {
+                // 영상 저장 중일 때는 선택 테두리를 숨김
+                if(!isRecordingFinal && selectedObj === obj) {
                     ctx.strokeStyle = "#6366f1"; ctx.lineWidth = 2;
                     ctx.setLineDash([5, 5]);
                     ctx.strokeRect(obj.x - obj.size/1.5, obj.y - obj.size/1.5, obj.size*1.3, obj.size*1.3);
@@ -425,13 +415,70 @@
                 ctx.restore();
             });
 
+            // 4. 영상 생성용 프레임 진행기
+            if (isRecordingFinal) {
+                if (time - lastRenderTime >= 33) { // 30fps 속도로 프레임 전환
+                    finalFrameIndex++;
+                    lastRenderTime = time;
+                    const maxFrames = Math.max(...cutFrames.map(arr => arr ? arr.length : 0));
+                    
+                    // 프레임 재생이 모두 끝나면 녹화 종료
+                    if (finalFrameIndex >= maxFrames) {
+                        isRecordingFinal = false;
+                        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                            mediaRecorder.stop();
+                        }
+                    }
+                }
+            } else {
+                lastRenderTime = time;
+            }
+
             requestAnimationFrame(render);
+        }
+
+        // [수정] 영상 저장 - 모아둔 프레임을 한번에 재생하며 녹화
+        function downloadVideo() {
+            const btn = document.getElementById('downloadVideoBtn');
+            btn.innerText = "⏳ 영상 생성 중...";
+            btn.disabled = true;
+            selectedObj = null; // 영상에 파란 점선이 찍히지 않도록 선택 해제
+
+            const stream = canvas.captureStream(30);
+            try {
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            } catch (e) {
+                mediaRecorder = new MediaRecorder(stream);
+            }
+            
+            recordedChunks = [];
+
+            mediaRecorder.ondataavailable = e => {
+                if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = 'my-four-cut-video.webm';
+                link.href = url;
+                link.click();
+                
+                btn.innerText = "🎥 영상 저장 (.webm)";
+                btn.disabled = false;
+            };
+
+            // 렌더링 엔진에 비디오 녹화 모드임을 알리고 재생 시작
+            isRecordingFinal = true;
+            finalFrameIndex = 0;
+            mediaRecorder.start();
         }
 
         function addTextObject() {
             const val = document.getElementById('textInput').value;
             const font = document.getElementById('fontFamily').value;
-            const color = document.getElementById('textColor').value; // [수정] 색상 값 가져오기
+            const color = document.getElementById('textColor').value;
             
             if(val) {
                 objects.push({type:'text', content:val, x:200, y:canvas.height - 60, size:40, font: font, color: color});
@@ -449,7 +496,6 @@
             if(selectedObj) selectedObj.size = parseInt(v);
         }
 
-        // [수정] 선택된 글자 색상 업데이트 함수
         function updateColor(v) {
             if(selectedObj && selectedObj.type === 'text') {
                 selectedObj.color = v;
@@ -464,9 +510,7 @@
             }
         }
 
-        // ==========================================
-        // 터치 및 마우스 이벤트 통합 지원 (아이패드/모바일 완벽 호환)
-        // ==========================================
+        // 터치 및 마우스 이벤트
         function getEventPos(e) {
             const rect = canvas.getBoundingClientRect();
             let clientX = e.clientX;
@@ -484,6 +528,8 @@
         }
 
         function handlePointerDown(e) {
+            if(isRecordingFinal) return; // 영상 녹화 중 조작 방지
+
             const pos = getEventPos(e);
             selectedObj = null;
             
@@ -501,7 +547,6 @@
                 document.getElementById('selectedControls').classList.remove('hidden');
                 document.getElementById('sizeSlider').value = selectedObj.size;
                 
-                // [수정] 선택된 객체가 글자(text)인 경우에만 색상 조절 UI를 보여줌
                 if (selectedObj.type === 'text') {
                     document.getElementById('textColorEditGroup').style.display = 'block';
                     document.getElementById('editColor').value = selectedObj.color || '#000000';
@@ -539,11 +584,9 @@
         window.addEventListener('keydown', (e) => { if(e.key === 'Delete' || e.key === 'Backspace') deleteSelected(); });
 
         function resetStudio() {
-            photos = []; objects = []; currentCut = 0;
+            photos = []; objects = []; currentCut = 0; cutFrames = [[], [], [], []];
             
-            // [수정] 초기화 시 녹화 강제 종료 및 URL 해제
             if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
-            videoUrl = null;
             document.getElementById('downloadVideoBtn').classList.add('hidden');
 
             document.getElementById('editActions').classList.add('hidden');
@@ -552,23 +595,18 @@
         }
 
         function downloadImage() {
-            const link = document.createElement('a');
-            link.download = 'my-four-cut.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
-
-        // [수정] 영상 다운로드 함수 추가
-        function downloadVideo() {
-            if (!videoUrl) return;
-            const link = document.createElement('a');
-            link.download = 'my-four-cut-video.webm';
-            link.href = videoUrl;
-            link.click();
+            selectedObj = null; // 선택된 테두리 지우기
+            // 한 프레임 렌더링 기다린 후 저장
+            setTimeout(() => {
+                const link = document.createElement('a');
+                link.download = 'my-four-cut.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }, 50);
         }
 
         startCamera(); 
-        render();
+        requestAnimationFrame(render);
     </script>
 </body>
 </html>
