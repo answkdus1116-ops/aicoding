@@ -7,23 +7,11 @@
     <link rel="stylesheet" href="AQUARIUM.css">
 </head>
 <body>
-    <div class="bubble-container" id="bubbleContainer"></div>
-
-    <div class="sea-floor">
-        <div class="sand"></div>
-        <div class="deco-elements">
-            <span class="seaweed">🌿</span>
-            <span class="seaweed" style="animation-delay: 1s;">🌿</span>
-            <span class="starfish">⭐</span>
-            <span class="shell">🐚</span>
-        </div>
-    </div>
-
     <div id="entryOverlay">
         <div class="entry-content">
-            <h1>🐠 나만의 수족관 🫧</h1>
-            <p>화면을 눌러 바닷속으로 들어가요!</p>
-            <button onclick="startAquarium()" class="btn-start">입장하기</button>
+            <div class="entry-icon">🌊</div>
+            <h1>자연쌤의 수족관</h1>
+            <button onclick="startAquarium()" class="btn-start">수족관 입장하기</button>
         </div>
     </div>
 
@@ -31,22 +19,37 @@
         <canvas id="aquariumCanvas"></canvas>
         
         <div class="ui-panel" id="uiPanel">
-            <div class="ui-header">🐟 바닷속 놀이터</div>
+            <div class="ui-header">🐠 바닷속 놀이터</div>
             <div class="btn-group">
-                <button onclick="document.getElementById('fileInput').click()" class="btn-main">📸 사진 찍기 / 추가</button>
-                <button onclick="toggleAudio()" id="audioBtn" class="btn-sub">🔇 소리 끔</button>
-                <button onclick="clearAquarium()" class="btn-sub">🧹 청소하기</button>
-                <button onclick="toggleFullScreen()" class="btn-sub">🖥️ 크게 보기</button>
+                <button onclick="openCamera()" class="btn-main camera-btn">📸 바로 촬영하기</button>
+                <button onclick="document.getElementById('fileInput').click()" class="btn-main upload-btn">📁 사진 가져오기</button>
+                
+                <div class="btn-row">
+                    <button onclick="toggleAudio()" id="audioBtn" class="btn-circle">🔇</button>
+                    <button onclick="clearAquarium()" class="btn-circle">🧹</button>
+                    <button onclick="toggleFullScreen()" class="btn-circle">🖥️</button>
+                </div>
             </div>
-            <button onclick="location.href='index.html'" class="btn-back">메인으로 돌아가기</button>
+            <button onclick="location.href='index.html'" class="btn-exit">🏠 메인으로 돌아가기</button>
+        </div>
+
+        <div id="cameraModal" class="camera-modal">
+            <div class="camera-content">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="captureCanvas" style="display:none;"></canvas>
+                <div class="camera-ui">
+                    <button onclick="takeSnapshot()" class="btn-capture">⚪</button>
+                    <button onclick="closeCamera()" class="btn-close-cam">닫기</button>
+                </div>
+            </div>
         </div>
 
         <div id="customAlert" class="custom-alert">
-            <div class="bubble-loader">🫧</div>
-            <p id="alertMessage">물고기가 헤엄칠 준비를 해요...</p>
+            <div class="loader">🫧</div>
+            <p id="alertMessage">물고기가 오는 중...</p>
         </div>
 
-        <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none" onchange="handleFileUpload(event)">
+        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(event)">
         <audio id="bgm" loop src="https://www.soundjay.com/nature/sounds/bubbles-01.mp3"></audio>
     </div>
 

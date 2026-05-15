@@ -1,85 +1,68 @@
 @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
 
+* { box-sizing: border-box; }
 body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Gaegu', cursive; }
 
-/* 🌊 수족관 배경 (고퀄리티 이미지 소스 활용) */
+/* 🌊 배경이 잘리거나 밀리지 않게 고정 */
 #aquarium-container {
-    position: relative; width: 100vw; height: 100vh;
-    background: #1e5799 url(aquarium_background.png) no-repeat center center;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #1e5799 url('my_bg.jpg') no-repeat center center;
     background-size: cover;
+    z-index: 1;
 }
 
-/* 🫧 물방울 레이어 */
-.bg-decorations::before {
-    content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
-    background: rgba(0, 100, 200, 0.2); /* 푸른 필터 */
-    pointer-events: none;
-}
-
-/* 🚪 입장 레이어 */
+/* 🚪 입장 레이어 디자인 */
 #entryOverlay {
-    position: fixed; top:0; left:0; width:100%; height:100%; 
-    background: radial-gradient(circle, #4facfe 0%, #00f2fe 100%);
-    display: flex; justify-content: center; align-items: center; z-index: 9999; text-align: center;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: linear-gradient(to bottom, #4facfe, #00f2fe);
+    display: flex; justify-content: center; align-items: center; z-index: 9999;
 }
-.entry-icon { font-size: 80px; animation: bounce 2s infinite; }
-@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+.entry-content { text-align: center; color: white; }
+.entry-icon { font-size: 100px; margin-bottom: 20px; animation: bounce 2s infinite; }
+.btn-start {
+    padding: 20px 50px; font-size: 2.5rem; background: #ff85a2; color: white;
+    border: none; border-radius: 50px; cursor: pointer; font-family: 'Gaegu';
+    box-shadow: 0 8px 0 #d6336c; transition: 0.2s;
+}
+.btn-start:active { transform: translateY(4px); box-shadow: 0 4px 0 #d6336c; }
 
-/* 🎀 버튼 디자인 수정 */
+/* 🎀 UI 패널 및 버튼 분리 디자인 */
 .ui-panel {
-    position: absolute; top: 20px; left: 20px; z-index: 100;
-    background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px);
-    padding: 20px; border-radius: 30px; border: 4px solid #ff85a2;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    position: absolute; top: 30px; left: 30px; z-index: 100;
+    background: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 30px;
+    border: 4px solid #ff85a2; width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
-.ui-header { font-size: 1.8rem; color: #ff85a2; margin-bottom: 15px; font-weight: bold; }
+.ui-header { font-size: 2rem; color: #ff85a2; text-align: center; margin-bottom: 20px; font-weight: bold; }
 
 .btn-main {
-    width: 100%; padding: 15px; font-size: 1.4rem; background: #ffeb3b; border: none;
-    border-radius: 20px; cursor: pointer; font-family: 'Gaegu'; margin-bottom: 10px;
-    box-shadow: 0 5px 0 #fbc02d; transition: 0.2s;
+    width: 100%; padding: 15px; font-size: 1.5rem; border: none; border-radius: 20px;
+    cursor: pointer; font-family: 'Gaegu'; margin-bottom: 12px; transition: 0.2s;
 }
+.camera-btn { background: #ffeb3b; box-shadow: 0 5px 0 #fbc02d; color: #333; }
+.upload-btn { background: #a2d2ff; box-shadow: 0 5px 0 #70a1ff; color: #333; }
+.btn-main:active { transform: translateY(3px); box-shadow: none; }
+
 .btn-row { display: flex; gap: 10px; margin-bottom: 15px; }
 .btn-circle {
-    flex: 1; padding: 10px; font-size: 1.2rem; background: white; border: 2px solid #ddd;
-    border-radius: 15px; cursor: pointer; box-shadow: 0 4px 0 #eee;
+    flex: 1; padding: 12px; font-size: 1.4rem; background: white; border: 2px solid #eee;
+    border-radius: 15px; cursor: pointer; box-shadow: 0 4px 0 #ddd;
 }
 
-/* 🏠 메인으로 버튼 (귀엽게) */
 .btn-exit {
-    width: 100%; background: #ff85a2; color: white; border: none;
-    padding: 10px; border-radius: 15px; font-family: 'Gaegu'; font-size: 1.2rem;
-    cursor: pointer; box-shadow: 0 4px 0 #d6336c;
+    width: 100%; padding: 12px; background: #ff85a2; color: white; border: none;
+    border-radius: 15px; font-family: 'Gaegu'; font-size: 1.3rem; cursor: pointer;
+    box-shadow: 0 4px 0 #d6336c;
 }
-.btn-exit:hover { background: #ff6b81; }
 
-/* 🫧 로딩 알림 */
-.custom-alert {
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: white; padding: 30px; border-radius: 30px; border: 5px solid #4facfe;
-    display: none; flex-direction: column; align-items: center; z-index: 1000;
-}
-.custom-alert.show { display: flex; }
-.loader { font-size: 40px; animation: rotate 2s infinite linear; }
-@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-/* 📸 카메라 모달 디자인 */
+/* 📸 카메라 모달 */
 .camera-modal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 2000;
 }
-.camera-content { position: relative; width: 90%; max-width: 500px; border: 8px solid white; border-radius: 30px; overflow: hidden; }
+.camera-content { position: relative; width: 90%; max-width: 500px; border: 10px solid white; border-radius: 30px; overflow: hidden; }
 #video { width: 100%; height: auto; display: block; }
-.camera-ui {
-    position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 30px;
-}
-.btn-capture {
-    width: 70px; height: 70px; background: white; border: 5px solid #ff85a2; border-radius: 50%; cursor: pointer;
-}
-.btn-close-cam {
-    background: #ff85a2; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-family: 'Gaegu';
-}
+.camera-ui { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 40px; }
+.btn-capture { width: 70px; height: 70px; background: white; border: 5px solid #ff85a2; border-radius: 50%; cursor: pointer; }
+.btn-close-cam { background: #ff85a2; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-family: 'Gaegu'; }
 
-/* 🎀 버튼 색상 분리 */
-.camera-btn { background: #ffeb3b !important; box-shadow: 0 5px 0 #fbc02d !important; margin-bottom: 8px !important; }
-.upload-btn { background: #a2d2ff !important; box-shadow: 0 5px 0 #70a1ff !important; margin-bottom: 15px !important; }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
