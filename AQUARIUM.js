@@ -14,10 +14,40 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
+// AQUARIUM.js 수정 부분
+
 function startAquarium() {
+    const bgm = document.getElementById('bgm');
+    const audioBtn = document.getElementById('audioBtn');
+    
+    // 1. 입장 화면 숨기기
     document.getElementById('entryOverlay').style.display = 'none';
-    bgm.play().catch(() => console.log("소리 재생을 위해 클릭이 필요합니다."));
-    document.getElementById('audioBtn').innerText = "🔊 소리 켬";
+    
+    // 2. 노래 재생 (에러 방지 로직 포함)
+    bgm.volume = 0.6; // 너무 클 수 있으니 60% 볼륨
+    bgm.play()
+        .then(() => {
+            console.log("Suno AI 노래 재생 시작!");
+            audioBtn.innerText = "🔊 소리 켬";
+        })
+        .catch(error => {
+            console.error("자동 재생 차단됨:", error);
+            alert("소리를 재생하려면 브라우저 상단 권한을 허용하거나 다시 클릭해 주세요.");
+            audioBtn.innerText = "🔇 소리 끔";
+        });
+}
+
+// 소리 끄고 켜는 버튼 기능
+function toggleAudio() {
+    const bgm = document.getElementById('bgm');
+    const btn = document.getElementById('audioBtn');
+    if (bgm.paused) {
+        bgm.play();
+        btn.innerText = "🔊 소리 켬";
+    } else {
+        bgm.pause();
+        btn.innerText = "🔇 소리 끔";
+    }
 }
 
 // 2. 물고기 클래스
