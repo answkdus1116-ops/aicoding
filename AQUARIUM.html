@@ -2,41 +2,54 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나만의 바다 수족관</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>반짝반짝 바닷속 놀이터</title>
     <link rel="stylesheet" href="AQUARIUM.css">
 </head>
 <body>
-<div id="aquarium-container">
-    <canvas id="aquariumCanvas"></canvas>
-    
-    <div class="sea-floor"></div>
-    <div class="seaweed-container">
-        <span class="seaweed">🌿</span>
-        <span class="seaweed">🌿</span>
-        <span class="seaweed">🌿</span>
-        <span class="starfish">⭐</span>
-    </div>
+    <div class="bubble-container" id="bubbleContainer"></div>
 
-    <div class="ui-panel" id="uiPanel">
-        <h2>🐟 바닷속 놀이터</h2>
-        <div class="btn-group">
-            <button onclick="document.getElementById('fileInput').click()" class="btn-add">물고기 추가</button>
-            <button onclick="toggleAudio()" id="audioBtn" class="btn-audio">소리 꺼짐 🔇</button>
-            <button onclick="clearAquarium()" class="btn-clear">전체 지우기</button>
-            <button onclick="toggleFullScreen()" class="btn-fs">전체화면</button>
+    <div class="sea-floor">
+        <div class="sand"></div>
+        <div class="deco-elements">
+            <span class="seaweed">🌿</span>
+            <span class="seaweed" style="animation-delay: 1s;">🌿</span>
+            <span class="starfish">⭐</span>
+            <span class="shell">🐚</span>
         </div>
-        <button onclick="location.href='index.html'" class="btn-back">메인으로 돌아가기</button>
     </div>
 
-    <div id="customAlert" class="custom-alert">
-        <div class="spinner">🫧</div>
-        <p id="alertMessage">물고기를 데려오는 중...</p>
+    <div id="entryOverlay">
+        <div class="entry-content">
+            <h1>🐠 나만의 수족관 🫧</h1>
+            <p>화면을 눌러 바닷속으로 들어가요!</p>
+            <button onclick="startAquarium()" class="btn-start">입장하기</button>
+        </div>
     </div>
 
-    <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(event)">
-    <audio id="bgm" loop src="https://www.soundjay.com/nature/sounds/bubbles-01.mp3"></audio>
-</div>
+    <div id="aquarium-container">
+        <canvas id="aquariumCanvas"></canvas>
+        
+        <div class="ui-panel" id="uiPanel">
+            <div class="ui-header">🐟 바닷속 놀이터</div>
+            <div class="btn-group">
+                <button onclick="document.getElementById('fileInput').click()" class="btn-main">📸 사진 찍기 / 추가</button>
+                <button onclick="toggleAudio()" id="audioBtn" class="btn-sub">🔇 소리 끔</button>
+                <button onclick="clearAquarium()" class="btn-sub">🧹 청소하기</button>
+                <button onclick="toggleFullScreen()" class="btn-sub">🖥️ 크게 보기</button>
+            </div>
+            <button onclick="location.href='index.html'" class="btn-back">메인으로 돌아가기</button>
+        </div>
+
+        <div id="customAlert" class="custom-alert">
+            <div class="bubble-loader">🫧</div>
+            <p id="alertMessage">물고기가 헤엄칠 준비를 해요...</p>
+        </div>
+
+        <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none" onchange="handleFileUpload(event)">
+        <audio id="bgm" loop src="https://www.soundjay.com/nature/sounds/bubbles-01.mp3"></audio>
+    </div>
+
     <script src="AQUARIUM.js"></script>
 </body>
 </html>
