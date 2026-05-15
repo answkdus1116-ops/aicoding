@@ -1,8 +1,12 @@
 const canvas = document.getElementById('aquariumCanvas');
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 const bgm = document.getElementById('bgm');
-const GOOGLE_VISION_API_KEY = 'YOUR_API_KEY'; // 여기에 본인의 키를 입력하세요
+const video = document.getElementById('video');
+const modal = document.getElementById('cameraModal');
 
+let fishes = [];
+
+// 1. 기본 설정
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -10,111 +14,171 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// 🫧 배경 물방울 자동 생성
-function createBubbles() {
-    const container = document.getElementById('bubbleContainer');
-    for (let i = 0; i < 15; i++) {
-        const b = document.createElement('div');
-        b.className = 'bubble';
-        const size = Math.random() * 30 + 10 + 'px';
-        b.style.width = size;
-        b.style.height = size;
-        b.style.left = Math.random() * 100 + 'vw';
-        b.style.animationDuration = Math.random() * 5 + 5 + 's';
-        b.style.animationDelay = Math.random() * 5 + 's';
-        container.appendChild(b);
-    }
-}
-createBubbles();
-
-// 🚪 수족관 시작 (오디오 문제 해결)
 function startAquarium() {
     document.getElementById('entryOverlay').style.display = 'none';
-    bgm.play();
+    bgm.play().catch(() => console.log("소리 재생을 위해 클릭이 필요합니다."));
     document.getElementById('audioBtn').innerText = "🔊 소리 켬";
 }
 
-let fishes = [];
-
+// 2. 물고기 클래스
 class Fish {
     constructor(img) {
         this.img = img;
-        this.size = 120 + Math.random() * 80;
+        this.size = 100 + Math.random() * 80;
         this.x = Math.random() * (canvas.width - this.size);
         this.y = Math.random() * (canvas.height - this.size);
-        
-        // 대각선 이동을 위한 속도 (X, Y 모두 부여)
         this.speedX = (Math.random() - 0.5) * 4;
-        this.speedY = (Math.random() - 0.5) * 2;
+        this.speedY = (Math.random() - 0.5) * 2.5;
         this.flip = this.speedX > 0;
     }
-
     update() {
         this.x += this.speedX;
         this.y += this.speedY;
-
-        // 충돌 시 튕기기 및 대각선 방향 유지
-        if (this.x <= 0 || this.x >= canvas.width - this.size) {
-            this.speedX *= -1;
-            this.flip = !this.flip;
-        }
-        if (this.y <= 0 || this.y >= canvas.height - 120) { // 모래사장 높이 고려
-            this.speedY *= -1;
-        }
+        if (this.x <= 0 || this.x >= canvas.width - this.size) { this.speedX *= -1; this.flip = !this.flip; }
+        if (this.y <= 0 || this.y >= canvas.height - this.size) { this.speedY *= -1; }
     }
-
     draw() {
         ctx.save();
-        // 이동 방향에 따라 살짝 기울어지게 (더 자연스러운 헤엄)
-        const angle = Math.atan2(this.speedY, Math.abs(this.speedX)) * 0.4;
-        
         if (this.flip) {
             ctx.translate(this.x + this.size, this.y);
             ctx.scale(-1, 1);
-            ctx.rotate(-angle);
             ctx.drawImage(this.img, 0, 0, this.size, this.size);
         } else {
-            ctx.translate(this.x, this.y);
-            ctx.rotate(angle);
-            ctx.drawImage(this.img, 0, 0, this.size, this.size);
+            ctx.drawImage(this.img, this.x, this.y, this.size, this.size);
         }
         ctx.restore();
     }
 }
 
-// 📸 실시간 업로드 및 처리
-async function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+// 3. 사진 처리 핵심 로직 (파일 추가 및 카메라 공통)
+async function processImage(dataUrl) {
+    showLoading(true, "물고기 변신 중...");
+    const base64Content = dataUrl.split(',')[1];
+    
+    try {
+        const response = await fetch('/.netlify/functions/get-fish-data', {
+            method: 'POST',
+            body: JSON.stringify({ imageContent: base64Content })
+        });
+        const data = await response.json();
+        const objects = data.responses[0].localizedObjectAnnotations;
+        const fishObject = objects ? objects.find(obj => obj.name === 'Fish' || obj.name === 'Animal') || objects[0] : null;
 
-    showLoading(true);
-    // ... 기존 Vision API 호출 및 extractFishAndAdd 로직 ...
-    // (이전 답변의 handleFileUpload, extractFishAndAdd 코드를 그대로 붙여넣으세요)
+        if (fishObject) {
+            extractFishAndAdd(dataUrl, fishObject.boundingPoly.normalizedVertices);
+        } else {
+            addPlainFishWithBgRemoval(dataUrl);
+        }
+    } catch (err) {
+        console.error("AI 처리 실패, 기본 추가로 전환:", err);
+        addPlainFishWithBgRemoval(dataUrl);
+    }
 }
 
-function showLoading(show) {
-    const alertBox = document.getElementById('customAlert');
-    if (show) alertBox.classList.add('show');
-    else alertBox.classList.remove('show');
+// 4. 배경 제거 및 캔버스 추가
+function extractFishAndAdd(src, vertices) {
+    const tempImg = new Image();
+    tempImg.src = src;
+    tempImg.onload = () => {
+        const tempCanvas = document.createElement('canvas');
+        const tCtx = tempCanvas.getContext('2d');
+        const x = vertices[0].x * tempImg.width;
+        const y = vertices[0].y * tempImg.height;
+        const w = (vertices[2].x - vertices[0].x) * tempImg.width;
+        const h = (vertices[2].y - vertices[0].y) * tempImg.height;
+
+        tempCanvas.width = w; tempCanvas.height = h;
+        tCtx.drawImage(tempImg, x, y, w, h, 0, 0, w, h);
+        
+        const imgData = tCtx.getImageData(0,0,w,h);
+        for(let i=0; i<imgData.data.length; i+=4) {
+            if(imgData.data[i]>230 && imgData.data[i+1]>230 && imgData.data[i+2]>230) imgData.data[i+3]=0;
+        }
+        tCtx.putImageData(imgData, 0, 0);
+
+        const fishImg = new Image();
+        fishImg.src = tempCanvas.toDataURL();
+        fishImg.onload = () => { fishes.push(new Fish(fishImg)); showLoading(false); };
+    };
+}
+
+function addPlainFishWithBgRemoval(src) {
+    const tempImg = new Image();
+    tempImg.src = src;
+    tempImg.onload = () => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = tempImg.width; tempCanvas.height = tempImg.height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.drawImage(tempImg, 0, 0);
+        const imgData = tCtx.getImageData(0,0,tempCanvas.width, tempCanvas.height);
+        for(let i=0; i<imgData.data.length; i+=4) {
+            if(imgData.data[i]>220 && imgData.data[i+1]>220 && imgData.data[i+2]>220) imgData.data[i+3]=0;
+        }
+        tCtx.putImageData(imgData, 0, 0);
+        const fishImg = new Image();
+        fishImg.src = tempCanvas.toDataURL();
+        fishImg.onload = () => { fishes.push(new Fish(fishImg)); showLoading(false); };
+    };
+}
+
+// 5. 카메라 제어
+async function openCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: "environment" }, audio: false 
+        });
+        video.srcObject = stream;
+        modal.style.display = 'flex';
+    } catch (err) {
+        alert("카메라를 켤 수 없어요! 브라우저 설정에서 카메라 권한을 확인해주세요.");
+    }
+}
+
+function takeSnapshot() {
+    const captureCanvas = document.getElementById('captureCanvas');
+    captureCanvas.width = video.videoWidth;
+    captureCanvas.height = video.videoHeight;
+    captureCanvas.getContext('2d').drawImage(video, 0, 0);
+    processImage(captureCanvas.toDataURL('image/jpeg'));
+    closeCamera();
+}
+
+function closeCamera() {
+    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+    modal.style.display = 'none';
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => processImage(e.target.result);
+    reader.readAsDataURL(file);
+}
+
+// 6. UI 기능
+function showLoading(show, msg) {
+    const el = document.getElementById('customAlert');
+    document.getElementById('alertMessage').innerText = msg;
+    el.classList.toggle('show', show);
 }
 
 function toggleAudio() {
     const btn = document.getElementById('audioBtn');
-    if (bgm.paused) {
-        bgm.play();
-        btn.innerText = "🔊 소리 켬";
-    } else {
-        bgm.pause();
-        btn.innerText = "🔇 소리 끔";
-    }
+    if (bgm.paused) { bgm.play(); btn.innerText = "🔊 소리 켬"; }
+    else { bgm.pause(); btn.innerText = "🔇 소리 끔"; }
 }
 
 function clearAquarium() { fishes = []; }
 
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    fishes.forEach(fish => { fish.update(); fish.draw(); });
-    requestAnimationFrame(animate);
+function toggleFullScreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else if (document.exitFullscreen) document.exitFullscreen();
 }
 
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    fishes.forEach(f => { f.update(); f.draw(); });
+    requestAnimationFrame(animate);
+}
 animate();

@@ -25,9 +25,9 @@
                 <button onclick="document.getElementById('fileInput').click()" class="btn-main upload-btn">📁 사진 가져오기</button>
                 
                 <div class="btn-row">
-                    <button onclick="toggleAudio()" id="audioBtn" class="btn-circle">🔇</button>
-                    <button onclick="clearAquarium()" class="btn-circle">🧹</button>
-                    <button onclick="toggleFullScreen()" class="btn-circle">🖥️</button>
+                    <button onclick="toggleAudio()" id="audioBtn" class="btn-circle">🔇 소리 끔</button>
+                    <button onclick="clearAquarium()" class="btn-circle">🧹 청소하기</button>
+                    <button onclick="toggleFullScreen()" class="btn-circle">🖥️ 크게보기</button>
                 </div>
             </div>
             <button onclick="location.href='index.html'" class="btn-exit">🏠 메인으로 돌아가기</button>
@@ -38,7 +38,7 @@
                 <video id="video" autoplay playsinline></video>
                 <canvas id="captureCanvas" style="display:none;"></canvas>
                 <div class="camera-ui">
-                    <button onclick="takeSnapshot()" class="btn-capture">⚪</button>
+                    <button onclick="takeSnapshot()" class="btn-capture"></button>
                     <button onclick="closeCamera()" class="btn-close-cam">닫기</button>
                 </div>
             </div>
