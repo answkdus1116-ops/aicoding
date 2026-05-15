@@ -15,32 +15,103 @@ resize();
 
 let fishes = [];
 
-// 물고기 객체 정의 (기존과 동일)
+// --- [변경 사항: Fish 클래스 업데이트] ---
 class Fish {
     constructor(img) {
         this.img = img;
-        this.size = 120 + Math.random() * 80;
+        this.size = 100 + Math.random() * 80;
         this.x = Math.random() * (canvas.width - this.size);
         this.y = Math.random() * (canvas.height - this.size);
-        this.speedX = (Math.random() - 0.5) * 3;
-        this.speedY = (Math.random() - 0.5) * 1.5;
+        
+        // 대각선 이동을 위해 속도를 X, Y 모두 다양하게 부여
+        this.speedX = (Math.random() - 0.5) * 4; 
+        this.speedY = (Math.random() - 0.5) * 3; // 위아래 속도 추가
         this.flip = this.speedX > 0;
     }
 
     update() {
         this.x += this.speedX;
         this.y += this.speedY;
-        if (this.x <= 0 || this.x >= canvas.width - this.size) { this.speedX *= -1; this.flip = !this.flip; }
-        if (this.y <= 0 || this.y >= canvas.height - this.size) { this.speedY *= -1; }
+
+        // 좌우 벽 충돌
+        if (this.x <= 0 || this.x >= canvas.width - this.size) {
+            this.speedX *= -1;
+            this.flip = !this.flip;
+        }
+        // 상하 벽 충돌 (수족관 천장과 바닥)
+        if (this.y <= 0 || this.y >= canvas.height - 120) { // 모래사장(80px) 고려
+            this.speedY *= -1;
+        }
     }
 
     draw() {
         ctx.save();
-        if (this.flip) { ctx.scale(-1, 1); ctx.drawImage(this.img, -this.x - this.size, this.y, this.size, this.size); }
-        else { ctx.drawImage(this.img, this.x, this.y, this.size, this.size); }
+        // 약간의 각도를 주어 대각선 이동 시 머리가 향하는 느낌을 줄 수 있음
+        const angle = Math.atan2(this.speedY, Math.abs(this.speedX)) * 0.5;
+        
+        if (this.flip) {
+            ctx.translate(this.x + this.size, this.y);
+            ctx.scale(-1, 1);
+            ctx.rotate(-angle);
+            ctx.drawImage(this.img, 0, 0, this.size, this.size);
+        } else {
+            ctx.translate(this.x, this.y);
+            ctx.rotate(angle);
+            ctx.drawImage(this.img, 0, 0, this.size, this.size);
+        }
         ctx.restore();
     }
 }
+
+// --- [변경 사항: 커스텀 알림창 제어] ---
+function showLoading(show, message = "물고기를 데려오는 중...") {
+    const alertBox = document.getElementById('customAlert');
+    document.getElementById('alertMessage').innerText = message;
+    if (show) alertBox.classList.add('show');
+    else alertBox.classList.remove('show');
+}
+
+// handleFileUpload 내의 alert()를 showLoading()으로 교체하세요
+async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    showLoading(true); // 커스텀 알림 켜기
+
+    // ... (기존 API 호출 로직 생략) ...
+
+    // 작업 완료 후 알림 끄기
+    // showLoading(false); 를 extractFishAndAdd의 img.onload 마지막에 넣으세요.
+}
+
+// --- [변경 사항: 소리 재생 문제 해결] ---
+function toggleAudio() {
+    const audioBtn = document.getElementById('audioBtn');
+    if (bgm.paused) {
+        bgm.play()
+            .then(() => {
+                audioBtn.innerText = "소리 켜짐 🫧";
+                audioBtn.classList.add('playing');
+            })
+            .catch(e => {
+                console.log("재생 실패:", e);
+                showLoading(true, "화면을 클릭하면 소리가 시작됩니다!");
+                setTimeout(() => showLoading(false), 2000);
+            });
+    } else {
+        bgm.pause();
+        audioBtn.innerText = "소리 꺼짐 🔇";
+        audioBtn.classList.remove('playing');
+    }
+}
+
+// 사용자가 화면 아무 데나 클릭하면 오디오 컨텍스트를 활성화
+document.body.addEventListener('click', () => {
+    if (bgm.paused && !bgm.currentTime) {
+        // 첫 클릭 시 조용히 소리 준비만 함
+        bgm.load();
+    }
+}, { once: true });
 
 // [핵심 기능] 캔버스의 흰색 배경을 투명하게 만드는 함수
 function removeWhiteBackground(canvas, threshold = WHITE_THRESHOLD) {

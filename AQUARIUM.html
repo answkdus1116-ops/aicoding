@@ -7,26 +7,36 @@
     <link rel="stylesheet" href="AQUARIUM.css">
 </head>
 <body>
-    <div id="aquarium-container">
-        <canvas id="aquariumCanvas"></canvas>
-        
-        <div class="ui-panel" id="uiPanel">
-            <h2>🐟 바닷속 그림 놀이터</h2>
-            <div class="btn-group">
-                <button onclick="document.getElementById('fileInput').click()" class="btn-add">물고기 추가</button>
-                <button onclick="toggleAudio()" class="btn-audio">소리 ON/OFF</button>
-                <button onclick="clearAquarium()" class="btn-clear">전체 지우기</button>
-                <button onclick="toggleFullScreen()" class="btn-fs">전체화면 모드</button>
-            </div>
-            <p class="guide-text">색칠한 물고기 사진을 올려보세요!</p>
-            <button onclick="location.href='index.html'" class="btn-back">메인으로 돌아가기</button>
-        </div>
-
-        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(event)">
-        
-        <audio id="bgm" loop src="https://www.soundjay.com/nature/sounds/bubbles-01.mp3"></audio>
+<div id="aquarium-container">
+    <canvas id="aquariumCanvas"></canvas>
+    
+    <div class="sea-floor"></div>
+    <div class="seaweed-container">
+        <span class="seaweed">🌿</span>
+        <span class="seaweed">🌿</span>
+        <span class="seaweed">🌿</span>
+        <span class="starfish">⭐</span>
     </div>
 
+    <div class="ui-panel" id="uiPanel">
+        <h2>🐟 바닷속 놀이터</h2>
+        <div class="btn-group">
+            <button onclick="document.getElementById('fileInput').click()" class="btn-add">물고기 추가</button>
+            <button onclick="toggleAudio()" id="audioBtn" class="btn-audio">소리 꺼짐 🔇</button>
+            <button onclick="clearAquarium()" class="btn-clear">전체 지우기</button>
+            <button onclick="toggleFullScreen()" class="btn-fs">전체화면</button>
+        </div>
+        <button onclick="location.href='index.html'" class="btn-back">메인으로 돌아가기</button>
+    </div>
+
+    <div id="customAlert" class="custom-alert">
+        <div class="spinner">🫧</div>
+        <p id="alertMessage">물고기를 데려오는 중...</p>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(event)">
+    <audio id="bgm" loop src="https://www.soundjay.com/nature/sounds/bubbles-01.mp3"></audio>
+</div>
     <script src="AQUARIUM.js"></script>
 </body>
 </html>

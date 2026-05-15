@@ -5,12 +5,50 @@ body, html {
     background-color: #001220;
 }
 
+/* 배경 심해 그라데이션 업그레이드 */
 #aquarium-container {
     position: relative; width: 100vw; height: 100vh;
-    /* 심해 느낌의 그라데이션 배경 */
-    background: linear-gradient(180deg, #1e5799 0%, #2989d8 50%, #001a33 100%);
+    background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
+    overflow: hidden;
 }
 
+/* 🏖️ 바닥 모래사장 */
+.sea-floor {
+    position: absolute; bottom: 0; width: 100%; height: 80px;
+    background: #f3e5ab; /* 모래색 */
+    border-top: 10px solid #e6d58e;
+    z-index: 1;
+}
+
+/* 🌿 해초와 불가사리 */
+.seaweed-container {
+    position: absolute; bottom: 60px; width: 100%;
+    display: flex; justify-content: space-around;
+    font-size: 40px; z-index: 2; pointer-events: none;
+}
+.seaweed { animation: sway 3s infinite ease-in-out; display: inline-block; }
+@keyframes sway {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(10deg); }
+}
+
+/* ✨ 커스텀 알림창 스타일 */
+.custom-alert {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px 40px; border-radius: 50px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: none; align-items: center; gap: 15px;
+    z-index: 1000; border: 3px solid #4facfe;
+}
+.custom-alert.show { display: flex; animation: popUp 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+@keyframes popUp { from { opacity: 0; transform: translate(-50%, -40%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+
+.spinner { font-size: 30px; animation: bubble 1.5s infinite; }
+@keyframes bubble { 0% { transform: translateY(0); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0); } }
+
+/* 소리 버튼 상태 변화 */
+.btn-audio.playing { background: #ff85a2; }
 canvas {
     display: block;
 }
