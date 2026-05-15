@@ -1,66 +1,85 @@
 @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
 
-body, html {
-    margin: 0; padding: 0; width: 100%; height: 100%;
-    overflow: hidden; font-family: 'Gaegu', cursive;
-    background: #00b4db; /* 기본 배경색 */
-}
+body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Gaegu', cursive; }
 
-/* 🌊 수족관 심해 그라데이션 */
+/* 🌊 수족관 배경 (고퀄리티 이미지 소스 활용) */
 #aquarium-container {
     position: relative; width: 100vw; height: 100vh;
-    background: linear-gradient(180deg, #6dd5ed 0%, #2193b0 100%);
+    background: #1e5799 url(aquarium_background.png) no-repeat center center;
+    background-size: cover;
 }
 
-/* 🫧 물방울 애니메이션 */
-.bubble-container { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-.bubble {
-    position: absolute; bottom: -50px; background: rgba(255, 255, 255, 0.3);
-    border-radius: 50%; animation: rise 10s infinite ease-in;
+/* 🫧 물방울 레이어 */
+.bg-decorations::before {
+    content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
+    background: rgba(0, 100, 200, 0.2); /* 푸른 필터 */
+    pointer-events: none;
 }
-@keyframes rise {
-    0% { transform: translateY(0) scale(1); opacity: 0; }
-    50% { opacity: 0.5; }
-    100% { transform: translateY(-110vh) scale(1.5); opacity: 0; }
-}
-
-/* 🏖️ 모래사장과 해초 */
-.sea-floor { position: absolute; bottom: 0; width: 100%; height: 120px; z-index: 2; pointer-events: none; }
-.sand { 
-    position: absolute; bottom: 0; width: 100%; height: 60px; 
-    background: #f4d03f; border-top: 5px solid #d4ac0d; border-radius: 50% 50% 0 0 / 20% 20% 0 0;
-}
-.deco-elements { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-around; font-size: 50px; }
-.seaweed { animation: sway 3s infinite ease-in-out; display: inline-block; transform-origin: bottom; }
-@keyframes sway { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } }
 
 /* 🚪 입장 레이어 */
 #entryOverlay {
-    position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8);
-    display: flex; justify-content: center; align-items: center; z-index: 9999; color: white; text-align: center;
+    position: fixed; top:0; left:0; width:100%; height:100%; 
+    background: radial-gradient(circle, #4facfe 0%, #00f2fe 100%);
+    display: flex; justify-content: center; align-items: center; z-index: 9999; text-align: center;
 }
-.btn-start {
-    padding: 15px 40px; font-size: 2rem; background: #ff85a2; color: white;
-    border: none; border-radius: 50px; cursor: pointer; font-family: 'Gaegu';
-    box-shadow: 0 5px 0 #d6336c; transition: 0.2s;
-}
-.btn-start:active { transform: translateY(4px); box-shadow: none; }
+.entry-icon { font-size: 80px; animation: bounce 2s infinite; }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
 
-/* 🎀 UI 버튼 스타일 */
+/* 🎀 버튼 디자인 수정 */
 .ui-panel {
     position: absolute; top: 20px; left: 20px; z-index: 100;
-    background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
-    padding: 20px; border-radius: 30px; border: 4px solid white;
+    background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px);
+    padding: 20px; border-radius: 30px; border: 4px solid #ff85a2;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
-.ui-header { font-size: 2rem; color: white; text-align: center; margin-bottom: 15px; text-shadow: 2px 2px #333; }
+.ui-header { font-size: 1.8rem; color: #ff85a2; margin-bottom: 15px; font-weight: bold; }
+
 .btn-main {
-    width: 100%; padding: 15px; font-size: 1.5rem; background: #ffeb3b; border: none;
-    border-radius: 20px; margin-bottom: 10px; cursor: pointer; font-family: 'Gaegu';
-    box-shadow: 0 5px 0 #fbc02d; font-weight: bold;
+    width: 100%; padding: 15px; font-size: 1.4rem; background: #ffeb3b; border: none;
+    border-radius: 20px; cursor: pointer; font-family: 'Gaegu'; margin-bottom: 10px;
+    box-shadow: 0 5px 0 #fbc02d; transition: 0.2s;
 }
-.btn-sub {
-    width: 100%; padding: 10px; font-size: 1.2rem; background: white; border: none;
-    border-radius: 15px; margin-bottom: 8px; cursor: pointer; font-family: 'Gaegu';
-    box-shadow: 0 4px 0 #ddd;
+.btn-row { display: flex; gap: 10px; margin-bottom: 15px; }
+.btn-circle {
+    flex: 1; padding: 10px; font-size: 1.2rem; background: white; border: 2px solid #ddd;
+    border-radius: 15px; cursor: pointer; box-shadow: 0 4px 0 #eee;
 }
-.btn-sub:active { transform: translateY(3px); box-shadow: none; }
+
+/* 🏠 메인으로 버튼 (귀엽게) */
+.btn-exit {
+    width: 100%; background: #ff85a2; color: white; border: none;
+    padding: 10px; border-radius: 15px; font-family: 'Gaegu'; font-size: 1.2rem;
+    cursor: pointer; box-shadow: 0 4px 0 #d6336c;
+}
+.btn-exit:hover { background: #ff6b81; }
+
+/* 🫧 로딩 알림 */
+.custom-alert {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: white; padding: 30px; border-radius: 30px; border: 5px solid #4facfe;
+    display: none; flex-direction: column; align-items: center; z-index: 1000;
+}
+.custom-alert.show { display: flex; }
+.loader { font-size: 40px; animation: rotate 2s infinite linear; }
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* 📸 카메라 모달 디자인 */
+.camera-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 2000;
+}
+.camera-content { position: relative; width: 90%; max-width: 500px; border: 8px solid white; border-radius: 30px; overflow: hidden; }
+#video { width: 100%; height: auto; display: block; }
+.camera-ui {
+    position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 30px;
+}
+.btn-capture {
+    width: 70px; height: 70px; background: white; border: 5px solid #ff85a2; border-radius: 50%; cursor: pointer;
+}
+.btn-close-cam {
+    background: #ff85a2; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-family: 'Gaegu';
+}
+
+/* 🎀 버튼 색상 분리 */
+.camera-btn { background: #ffeb3b !important; box-shadow: 0 5px 0 #fbc02d !important; margin-bottom: 8px !important; }
+.upload-btn { background: #a2d2ff !important; box-shadow: 0 5px 0 #70a1ff !important; margin-bottom: 15px !important; }
