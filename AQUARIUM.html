@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 바다 수족관</title>
+    <link rel="stylesheet" href="AQUARIUM.css">
+</head>
+<body>
+    <div id="aquarium-container">
+        <canvas id="aquariumCanvas"></canvas>
+        
+        <div class="ui-panel" id="uiPanel">
+            <h2>🐟 바닷속 그림 놀이터</h2>
+            <div class="btn-group">
+                <button onclick="document.getElementById('fileInput').click()" class="btn-add">물고기 추가</button>
+                <button onclick="toggleAudio()" class="btn-audio">소리 ON/OFF</button>
+                <button onclick="clearAquarium()" class="btn-clear">전체 지우기</button>
+                <button onclick="toggleFullScreen()" class="btn-fs">전체화면 모드</button>
+            </div>
+            <p class="guide-text">색칠한 물고기 사진을 올려보세요!</p>
+            <button onclick="location.href='index.html'" class="btn-back">메인으로 돌아가기</button>
+        </div>
+
+        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(event)">
+        
+        <audio id="bgm" loop src="https://www.soundjay.com/nature/sounds/bubbles-01.mp3"></audio>
+    </div>
+
+    <script src="AQUARIUM.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+/* 기본 초기화 */
+body, html {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden; font-family: 'Pretendard', sans-serif;
+    background-color: #001220;
+}
+
+#aquarium-container {
+    position: relative; width: 100vw; height: 100vh;
+    /* 심해 느낌의 그라데이션 배경 */
+    background: linear-gradient(180deg, #1e5799 0%, #2989d8 50%, #001a33 100%);
+}
+
+canvas {
+    display: block;
+}
+
+/* UI 패널 스타일 */
+.ui-panel {
+    position: absolute; top: 30px; left: 30px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 25px; border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white; transition: opacity 0.5s ease;
+    z-index: 10;
+}
+
+/* 전체화면 시 UI 숨김 처리용 클래스 */
+.hide-ui { opacity: 0; pointer-events: none; }
+
+.btn-group button {
+    display: block; width: 180px; margin: 12px 0;
+    padding: 12px; border: none; border-radius: 10px;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-add { background: #ffcc00; color: #333; }
+.btn-audio { background: #4db8ff; color: white; }
+.btn-clear { background: #ff4d4d; color: white; }
+.btn-fs { background: #ffffff; color: #333; }
+.btn-back { background: transparent; color: #ccc; text-decoration: underline; font-size: 14px; margin-top: 10px; }
+
+button:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+.guide-text { font-size: 13px; color: #e0e0e0; margin: 10px 0; }
