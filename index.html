@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>자연쌤의 웹 앱 공작소 ✨</title>
     <style>
-        /* 아기자기한 폰트와 배경 설정 */
+        /* 기존 폰트 및 기본 설정 유지 */
         @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
 
         body {
-            background-color: #fff9f0; /* 연한 크림색 배경 */
+            background-color: #fff9f0;
             font-family: 'Gaegu', cursive;
             display: flex;
             flex-direction: column;
@@ -19,38 +19,48 @@
         }
 
         h1 {
-            color: #ff85a2; /* 핑크색 제목 */
+            color: #ff85a2;
             font-size: 3rem;
             margin-bottom: 30px;
             text-shadow: 2px 2px #fff;
         }
 
-        /* 웹 앱 목록 컨테이너 */
         .app-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            max-width: 800px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            max-width: 900px;
             width: 100%;
         }
 
-        /* 개별 앱 카드 스타일 */
+        /* 공통 카드 스타일 */
         .app-card {
             background: white;
             border: 3px solid #ffc2d1;
-            border-radius: 20px;
+            border-radius: 25px;
             padding: 20px;
             text-align: center;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
             cursor: pointer;
-            text-decoration: none; /* 밑줄 제거 */
+            text-decoration: none;
             color: #333;
-            box-shadow: 0 8px 0 #ffc2d1; /* 입체감 있는 그림자 */
+            box-shadow: 0 8px 0 #ffc2d1;
+        }
+
+        /* 수족관 카드 전용 스타일 (하늘색 포인트) */
+        .aqua-card {
+            border-color: #a2d2ff;
+            box-shadow: 0 8px 0 #a2d2ff;
         }
 
         .app-card:hover {
             transform: translateY(-10px);
-            background-color: #fff0f3;
+            background-color: #fffafb;
+        }
+
+        /* 수족관 카드 호버 시 색상 */
+        .aqua-card:hover {
+            background-color: #f0f8ff;
         }
 
         .app-card:active {
@@ -58,15 +68,22 @@
             box-shadow: 0 2px 0 #ffc2d1;
         }
 
+        .aqua-card:active {
+            box-shadow: 0 2px 0 #a2d2ff;
+        }
+
         .app-icon {
-            font-size: 50px;
+            font-size: 55px;
             margin-bottom: 10px;
         }
 
         .app-title {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: bold;
+            margin-bottom: 5px;
         }
+
+        p { margin: 5px 0; font-size: 1.1rem; color: #666; }
     </style>
 </head>
 <body>
@@ -80,7 +97,13 @@
             <p>찰칵! 예쁜 추억을 남겨요</p>
         </a>
 
-        <div class="app-card" style="opacity: 0.6; cursor: default;">
+        <a href="AQUARIUM.html" class="app-card aqua-card">
+            <div class="app-icon">🐠</div>
+            <div class="app-title">수족관 놀이터</div>
+            <p>물고기들과 함께 놀아요!</p>
+        </a>
+
+        <div class="app-card" style="opacity: 0.5; cursor: default; border-color: #ddd; box-shadow: 0 8px 0 #ddd;">
             <div class="app-icon">🛠️</div>
             <div class="app-title">준비 중...</div>
             <p>다음 앱을 기대해 주세요!</p>
