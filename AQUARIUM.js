@@ -201,10 +201,47 @@ function toggleAudio() {
 
 function clearAquarium() { fishes = []; }
 
+// 전체 화면 토글 및 UI 숨기기 기능
 function toggleFullScreen() {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-    else if (document.exitFullscreen) document.exitFullscreen();
+    const uiPanel = document.getElementById('uiPanel');
+    
+    if (!document.fullscreenElement) {
+        // 1. 전체 화면 진입
+        document.documentElement.requestFullscreen().then(() => {
+            // 2. 전체 화면이 되면 UI 패널을 살짝 투명하게 만들거나 숨깁니다.
+            uiPanel.style.opacity = "0";
+            uiPanel.style.pointerEvents = "none"; // 클릭 안 되게 방지
+            
+            // 3. 안내 메시지 (잠시 후 사라짐)
+            console.log("전체화면 모드: 마우스를 움직이면 버튼이 나타납니다.");
+        });
+    } else {
+        // 4. 전체 화면 해제
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+            uiPanel.style.opacity = "1";
+            uiPanel.style.pointerEvents = "auto";
+        }
+    }
 }
+
+// 전체 화면일 때 마우스를 움직이면 UI를 다시 보여주는 기능
+window.addEventListener('mousemove', () => {
+    if (document.fullscreenElement) {
+        const uiPanel = document.getElementById('uiPanel');
+        uiPanel.style.opacity = "1";
+        uiPanel.style.pointerEvents = "auto";
+        
+        // 마우스를 멈추고 3초 뒤에 다시 숨기기 (선택 사항)
+        clearTimeout(window.uiTimeout);
+        window.uiTimeout = setTimeout(() => {
+            if (document.fullscreenElement) {
+                uiPanel.style.opacity = "0";
+                uiPanel.style.pointerEvents = "none";
+            }
+        }, 3000); 
+    }
+});
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
