@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>자연쌤의 웹 앱 공작소 ✨</title>
     <style>
-        /* 기존 폰트 및 기본 설정 유지 */
         @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
 
         body {
@@ -33,7 +32,6 @@
             width: 100%;
         }
 
-        /* 공통 카드 스타일 */
         .app-card {
             background: white;
             border: 3px solid #ffc2d1;
@@ -47,42 +45,21 @@
             box-shadow: 0 8px 0 #ffc2d1;
         }
 
-        /* 수족관 카드 전용 스타일 (하늘색 포인트) */
-        .aqua-card {
-            border-color: #a2d2ff;
-            box-shadow: 0 8px 0 #a2d2ff;
-        }
+        /* 수족관 카드 (하늘색) */
+        .aqua-card { border-color: #a2d2ff; box-shadow: 0 8px 0 #a2d2ff; }
+        .aqua-card:hover { background-color: #f0f8ff; }
+        .aqua-card:active { box-shadow: 0 2px 0 #a2d2ff; }
 
-        .app-card:hover {
-            transform: translateY(-10px);
-            background-color: #fffafb;
-        }
+        /* 과수원 카드 (초록색) */
+        .orchard-card { border-color: #a8e063; box-shadow: 0 8px 0 #a8e063; }
+        .orchard-card:hover { background-color: #f7fff0; }
+        .orchard-card:active { box-shadow: 0 2px 0 #a8e063; }
 
-        /* 수족관 카드 호버 시 색상 */
-        .aqua-card:hover {
-            background-color: #f0f8ff;
-        }
+        .app-card:hover { transform: translateY(-10px); }
+        .app-card:active { transform: translateY(5px); }
 
-        .app-card:active {
-            transform: translateY(5px);
-            box-shadow: 0 2px 0 #ffc2d1;
-        }
-
-        .aqua-card:active {
-            box-shadow: 0 2px 0 #a2d2ff;
-        }
-
-        .app-icon {
-            font-size: 55px;
-            margin-bottom: 10px;
-        }
-
-        .app-title {
-            font-size: 1.6rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
+        .app-icon { font-size: 55px; margin-bottom: 10px; }
+        .app-title { font-size: 1.6rem; font-weight: bold; margin-bottom: 5px; }
         p { margin: 5px 0; font-size: 1.1rem; color: #666; }
     </style>
 </head>
@@ -103,11 +80,11 @@
             <p>물고기들과 함께 놀아요!</p>
         </a>
 
-        <div class="app-card" style="opacity: 0.5; cursor: default; border-color: #ddd; box-shadow: 0 8px 0 #ddd;">
-            <div class="app-icon">🛠️</div>
-            <div class="app-title">준비 중...</div>
-            <p>다음 앱을 기대해 주세요!</p>
-        </div>
+        <a href="ORCHARD.html" class="app-card orchard-card">
+            <div class="app-icon">🍎</div>
+            <div class="app-title">햇살 과수원</div>
+            <p>나뭇가지에 열매가 대롱대롱!</p>
+        </a>
     </div>
 
 </body>
