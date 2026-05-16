@@ -54,29 +54,77 @@ function toggleAudio() {
 class Fish {
     constructor(img) {
         this.img = img;
-        this.size = 100 + Math.random() * 80;
+        this.size = 100 + Math.random() * 100;
         this.x = Math.random() * (canvas.width - this.size);
         this.y = Math.random() * (canvas.height - this.size);
-        this.speedX = (Math.random() - 0.5) * 4;
-        this.speedY = (Math.random() - 0.5) * 2.5;
-        this.flip = this.speedX > 0;
+        
+        // 기본 속도
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = (Math.random() - 0.5) * 2;
+
+        // 😲 놀람 상태 속성 추가
+        this.isScared = false;
+        this.scaredTimer = 0; // 놀람 효과 지속 시간
     }
+
+    // ⚡ 도망가기 메소드
+    scare() {
+        this.isScared = true;
+        this.scaredTimer = 60; // 약 1초 동안 (60프레임) 효과 유지
+        
+        // 클릭된 반대 방향으로 속도 대폭 증가
+        this.vx *= -5; 
+        this.vy *= -5;
+
+        // 속도가 너무 빠르지 않게 제한 (최대 10)
+        const maxSpeed = 10;
+        if (Math.abs(this.vx) > maxSpeed) this.vx = (this.vx > 0 ? 1 : -1) * maxSpeed;
+        if (Math.abs(this.vy) > maxSpeed) this.vy = (this.vy > 0 ? 1 : -1) * maxSpeed;
+    }
+
     update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        if (this.x <= 0 || this.x >= canvas.width - this.size) { this.speedX *= -1; this.flip = !this.flip; }
-        if (this.y <= 0 || this.y >= canvas.height - this.size) { this.speedY *= -1; }
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // 벽 충돌 처리
+        if (this.x < 0 || this.x + this.size > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y + this.size > canvas.height) this.vy *= -1;
+
+        // 놀람 상태 회복 로직
+        if (this.isScared) {
+            this.scaredTimer--;
+            if (this.scaredTimer <= 0) {
+                this.isScared = false;
+                // 다시 천천히 헤엄치도록 감속
+                this.vx *= 0.4;
+                this.vy *= 0.4;
+            }
+        }
     }
+
     draw() {
         ctx.save();
-        if (this.flip) {
+        
+        // 이동 방향에 따라 좌우 반전
+        if (this.vx < 0) {
             ctx.translate(this.x + this.size, this.y);
             ctx.scale(-1, 1);
             ctx.drawImage(this.img, 0, 0, this.size, this.size);
         } else {
             ctx.drawImage(this.img, this.x, this.y, this.size, this.size);
         }
+        
         ctx.restore();
+
+        // ❗ 놀람 이모지 표시
+        if (this.isScared) {
+            ctx.font = "bold 40px Arial";
+            ctx.fillStyle = "yellow";
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.fillText("!!", this.x + this.size / 2 - 10, this.y - 10);
+            ctx.strokeText("!!", this.x + this.size / 2 - 10, this.y - 10);
+        }
     }
 }
 
@@ -266,3 +314,21 @@ function animate() {
     requestAnimationFrame(animate);
 }
 animate();
+
+// 물고기 클릭(터치) 감지
+canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // 모든 물고기를 검사하여 클릭된 위치에 있는지 확인
+    for (let i = fishes.length - 1; i >= 0; i--) {
+        const fish = fishes[i];
+        if (mouseX > fish.x && mouseX < fish.x + fish.size &&
+            mouseY > fish.y && mouseY < fish.y + fish.size) {
+            
+            fish.scare(); // 물고기 놀람 함수 실행
+            break; // 한 번 클릭에 물고기 한 마리만 반응하게
+        }
+    }
+});
