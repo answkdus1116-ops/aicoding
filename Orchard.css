@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
+
+* { box-sizing: border-box; }
+body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Gaegu', cursive; }
+
+/* 🌳 과수원 배경 고정 */
+#orchard-container {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #87CEEB url('orchard_background.png') no-repeat center center;
+    background-size: cover; z-index: 1;
+}
+
+/* 🚪 입장 레이어 (초록초록한 과수원 느낌) */
+#entryOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: linear-gradient(to bottom, #a8e063, #56ab2f);
+    display: flex; justify-content: center; align-items: center; z-index: 9999;
+}
+.entry-content {
+    background: rgba(255, 255, 255, 0.9); padding: 40px; border-radius: 40px; 
+    border: 6px solid #ff4d4d; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+.entry-icon { font-size: 60px; margin-bottom: 10px; animation: bounce 2s infinite; }
+.btn-start {
+    padding: 15px 40px; font-size: 2.2rem; background: #ff4d4d; color: white;
+    border: none; border-radius: 50px; cursor: pointer; font-family: 'Gaegu';
+    box-shadow: 0 8px 0 #cc0000; transition: 0.1s;
+}
+
+/* 🎀 UI 패널 (사과색 포인트) */
+.ui-panel {
+    position: absolute; top: 20px; left: 20px; z-index: 100;
+    background: rgba(255, 255, 255, 0.85); padding: 20px; border-radius: 25px;
+    border: 3px solid #ff4d4d; width: 300px; transition: opacity 0.5s ease;
+}
+.ui-header { font-size: 1.8rem; color: #ff4d4d; text-align: center; margin-bottom: 15px; }
+.camera-btn { background: #ff4d4d; color: white; box-shadow: 0 4px 0 #cc0000; }
+.upload-btn { background: #ffd93d; box-shadow: 0 4px 0 #f9a825; }
+
+/* 📸 카메라 및 모달 (수족관과 동일 구조) */
+.camera-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 2000;
+}
+.camera-content { position: relative; width: 90%; max-width: 500px; border: 6px solid white; border-radius: 25px; overflow: hidden; }
+#video { width: 100%; height: auto; display: block; }
+.camera-ui { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 30px; }
+.btn-capture { width: 65px; height: 65px; background: white; border: 5px solid #ff4d4d; border-radius: 50%; }
+
+.custom-alert {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: white; padding: 25px; border-radius: 25px; border: 4px solid #ff4d4d;
+    display: none; flex-direction: column; align-items: center; z-index: 3000;
+}
+.custom-alert.show { display: flex; }
+
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
