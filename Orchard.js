@@ -167,44 +167,61 @@ function showLoading(show, msg) {
 
 // 🖥️ 문제 4 해결: 크게 보기 시 UI 사라지게 하기 (수족관과 동일 로직)
 // ORCHARD.js 내 전체화면 관련 함수 수정
+// 🖥️ 전체화면 토글
 function toggleFullScreen() {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {
-            alert(`전체화면 오류: ${err.message}`);
+            console.error(`전체화면 오류: ${err.message}`);
         });
     } else {
         document.exitFullscreen();
     }
 }
 
-// 브라우저의 전체화면 상태 변화를 직접 감시 (가장 확실한 방법)
+// 🌓 전체화면 상태 변화 감지
 document.addEventListener('fullscreenchange', () => {
     const ui = document.getElementById('uiPanel');
     if (document.fullscreenElement) {
-        // 전체화면 진입 시 즉시 숨김
-        ui.style.opacity = "0";
-        ui.style.pointerEvents = "none";
+        // 전체화면 진입 시 2초 뒤에 자동으로 처음 한 번 숨기기
+        window.uiTimeout = setTimeout(() => {
+            ui.style.opacity = "0";
+            ui.style.pointerEvents = "none";
+        }, 2000);
     } else {
-        // 전체화면 해제 시 다시 보임
+        // 해제 시 즉시 나타남
+        clearTimeout(window.uiTimeout);
         ui.style.opacity = "1";
         ui.style.pointerEvents = "auto";
     }
 });
 
-// 마우스 움직임 감지는 유지 (전체화면일 때만 작동)
-window.addEventListener('mousemove', () => {
+// 🖱️ 마우스 움직임 감지 로직 강화
+window.addEventListener('mousemove', (e) => {
     if (document.fullscreenElement) {
         const ui = document.getElementById('uiPanel');
+        
+        // 마우스가 움직이면 일단 보여줌
         ui.style.opacity = "1";
         ui.style.pointerEvents = "auto";
         
         clearTimeout(window.uiTimeout);
-        window.uiTimeout = setTimeout(() => {
-            if (document.fullscreenElement) {
-                ui.style.opacity = "0";
-                ui.style.pointerEvents = "none";
-            }
-        }, 3000);
+        
+        // 🛑 마우스가 UI 패널(버튼 박스) 위에 있을 때는 숨기지 않음
+        // 마우스가 패널 밖에 있을 때만 3초 뒤에 숨김
+        const rect = ui.getBoundingClientRect();
+        const isOverPanel = (
+            e.clientX >= rect.left && e.clientX <= rect.right &&
+            e.clientY >= rect.top && e.clientY <= rect.bottom
+        );
+
+        if (!isOverPanel) {
+            window.uiTimeout = setTimeout(() => {
+                if (document.fullscreenElement) {
+                    ui.style.opacity = "0";
+                    ui.style.pointerEvents = "none";
+                }
+            }, 3000); 
+        }
     }
 });
 
