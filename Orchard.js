@@ -21,20 +21,25 @@ function startOrchard() {
 }
 
 // 🍎 열매 클래스 (대롱대롱 매달려 좌우로 흔들리는 효과)
+// ORCHARD.js 내 Fruit 클래스 수정
 class Fruit {
     constructor(img) {
         this.img = img;
-        this.size = 80 + Math.random() * 50; // 수족관보다 약간 작게 (열매느낌)
+        this.size = 80 + Math.random() * 50;
         
-        // 🌳 문제 2 해결: 열매가 상단 나뭇가지에만 매달리도록 X, Y 배치 수정
-        this.x = (canvas.width * 0.05) + Math.random() * (canvas.width * 0.9); // 화면 좌우 끝에서 약간 떨어짐
-        this.y = (canvas.height * 0.1) + Math.random() * (canvas.height * 0.35); // 화면 위쪽 10% ~ 45% 영역에 배치
+        // 🌳 수정: 좌우 여백을 더 크게 주어 중앙 나무 영역에 집중 (X축 범위 조정)
+        // 화면 너비의 20% 지점부터 60% 너비 안에서만 생성 (양옆 20%는 비움)
+        this.x = (canvas.width * 0.2) + Math.random() * (canvas.width * 0.6); 
         
-        // 흔들림 물리 효과
-        this.angle = Math.random() * Math.PI * 2; // 초기 각도 랜덤
-        this.swingSpeed = 0.015 + Math.random() * 0.02; // 흔들림 속도
-        this.range = 0.08 + Math.random() * 0.1; // 흔들림 범위 (각도)
+        // Y축은 기존처럼 상단 10%~45% 유지
+        this.y = (canvas.height * 0.1) + Math.random() * (canvas.height * 0.35); 
+        
+        this.angle = Math.random() * Math.PI * 2;
+        this.swingSpeed = 0.015 + Math.random() * 0.02;
+        this.range = 0.08 + Math.random() * 0.1;
     }
+    // ... update와 draw는 그대로 유지
+
     update() {
         this.angle += this.swingSpeed;
     }
@@ -161,27 +166,45 @@ function showLoading(show, msg) {
 }
 
 // 🖥️ 문제 4 해결: 크게 보기 시 UI 사라지게 하기 (수족관과 동일 로직)
+// ORCHARD.js 내 전체화면 관련 함수 수정
 function toggleFullScreen() {
-    const ui = document.getElementById('uiPanel');
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().then(() => {
-            ui.style.opacity = "0"; // 부드럽게 숨기기 (CSS transition)
-            ui.style.pointerEvents = "none"; // 클릭 안 되게 방지
+        document.documentElement.requestFullscreen().catch(err => {
+            alert(`전체화면 오류: ${err.message}`);
         });
     } else {
         document.exitFullscreen();
-        ui.style.opacity = "1"; // 다시 보여주기
-        ui.style.pointerEvents = "auto";
     }
 }
+
+// 브라우저의 전체화면 상태 변화를 직접 감시 (가장 확실한 방법)
+document.addEventListener('fullscreenchange', () => {
+    const ui = document.getElementById('uiPanel');
+    if (document.fullscreenElement) {
+        // 전체화면 진입 시 즉시 숨김
+        ui.style.opacity = "0";
+        ui.style.pointerEvents = "none";
+    } else {
+        // 전체화면 해제 시 다시 보임
+        ui.style.opacity = "1";
+        ui.style.pointerEvents = "auto";
+    }
+});
+
+// 마우스 움직임 감지는 유지 (전체화면일 때만 작동)
 window.addEventListener('mousemove', () => {
     if (document.fullscreenElement) {
         const ui = document.getElementById('uiPanel');
-        ui.style.opacity = "1"; ui.style.pointerEvents = "auto";
+        ui.style.opacity = "1";
+        ui.style.pointerEvents = "auto";
+        
         clearTimeout(window.uiTimeout);
         window.uiTimeout = setTimeout(() => {
-            if (document.fullscreenElement) { ui.style.opacity = "0"; ui.style.pointerEvents = "none"; }
-        }, 3000); // 마우스 가만히 3초 뒤 다시 숨김
+            if (document.fullscreenElement) {
+                ui.style.opacity = "0";
+                ui.style.pointerEvents = "none";
+            }
+        }, 3000);
     }
 });
 

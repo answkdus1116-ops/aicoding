@@ -202,47 +202,47 @@ function toggleAudio() {
 function clearAquarium() { fishes = []; }
 
 // 전체 화면 토글 및 UI 숨기기 기능
+// 🖥️ 전체화면 토글 함수
 function toggleFullScreen() {
-    const uiPanel = document.getElementById('uiPanel');
-    
     if (!document.fullscreenElement) {
-        // 1. 전체 화면 진입
-        document.documentElement.requestFullscreen().then(() => {
-            // 2. 전체 화면이 되면 UI 패널을 살짝 투명하게 만들거나 숨깁니다.
-            uiPanel.style.opacity = "0";
-            uiPanel.style.pointerEvents = "none"; // 클릭 안 되게 방지
-            
-            // 3. 안내 메시지 (잠시 후 사라짐)
-            console.log("전체화면 모드: 마우스를 움직이면 버튼이 나타납니다.");
+        document.documentElement.requestFullscreen().catch(err => {
+            console.error(`전체화면 오류: ${err.message}`);
         });
     } else {
-        // 4. 전체 화면 해제
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-            uiPanel.style.opacity = "1";
-            uiPanel.style.pointerEvents = "auto";
-        }
+        document.exitFullscreen();
     }
 }
 
-// 전체 화면일 때 마우스를 움직이면 UI를 다시 보여주는 기능
-window.addEventListener('mousemove', () => {
+// 🌓 전체화면 상태 변화 감지 (UI 패널 숨기기/보이기)
+document.addEventListener('fullscreenchange', () => {
+    const ui = document.getElementById('uiPanel');
     if (document.fullscreenElement) {
-        const uiPanel = document.getElementById('uiPanel');
-        uiPanel.style.opacity = "1";
-        uiPanel.style.pointerEvents = "auto";
-        
-        // 마우스를 멈추고 3초 뒤에 다시 숨기기 (선택 사항)
-        clearTimeout(window.uiTimeout);
-        window.uiTimeout = setTimeout(() => {
-            if (document.fullscreenElement) {
-                uiPanel.style.opacity = "0";
-                uiPanel.style.pointerEvents = "none";
-            }
-        }, 3000); 
+        // 전체화면 진입 시 UI 숨김
+        ui.style.opacity = "0";
+        ui.style.pointerEvents = "none";
+    } else {
+        // 전체화면 해제 시 UI 다시 보임
+        ui.style.opacity = "1";
+        ui.style.pointerEvents = "auto";
     }
 });
 
+// 🖱️ 마우스 움직임 감지 (전체화면일 때만 UI 잠깐 보여주기)
+window.addEventListener('mousemove', () => {
+    if (document.fullscreenElement) {
+        const ui = document.getElementById('uiPanel');
+        ui.style.opacity = "1";
+        ui.style.pointerEvents = "auto";
+        
+        clearTimeout(window.uiTimeout);
+        window.uiTimeout = setTimeout(() => {
+            if (document.fullscreenElement) {
+                ui.style.opacity = "0";
+                ui.style.pointerEvents = "none";
+            }
+        }, 3000); // 3초간 마우스 움직임 없으면 다시 숨김
+    }
+});
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     fishes.forEach(f => { f.update(); f.draw(); });
