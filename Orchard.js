@@ -22,34 +22,61 @@ function startOrchard() {
 
 // 🍎 열매 클래스 (대롱대롱 매달려 좌우로 흔들리는 효과)
 // ORCHARD.js 내 Fruit 클래스 수정
+// ORCHARD.js 내 Fruit 클래스 수정
 class Fruit {
     constructor(img) {
         this.img = img;
-        this.size = 80 + Math.random() * 50;
+        this.size = 70 + Math.random() * 40;
+        this.x = (canvas.width * 0.15) + Math.random() * (canvas.width * 0.7); 
+        this.y = (canvas.height * 0.35) + Math.random() * (canvas.height * 0.3); 
         
-        // 🌳 수정: 좌우 여백을 더 크게 주어 중앙 나무 영역에 집중 (X축 범위 조정)
-        // 화면 너비의 20% 지점부터 60% 너비 안에서만 생성 (양옆 20%는 비움)
-        this.x = (canvas.width * 0.2) + Math.random() * (canvas.width * 0.6); 
-        
-        // Y축은 기존처럼 상단 10%~45% 유지
-        this.y = (canvas.height * 0.1) + Math.random() * (canvas.height * 0.35); 
-        
+        // 흔들림 속성
         this.angle = Math.random() * Math.PI * 2;
-        this.swingSpeed = 0.015 + Math.random() * 0.02;
+        this.swingSpeed = 0.015 + Math.random() * 0.015;
         this.range = 0.08 + Math.random() * 0.1;
+
+        // 🍎 낙하 속성 추가
+        this.isFalling = false;
+        this.vy = 0; // 수직 속도
+        this.gravity = 0.5; // 중력 세기
+        this.bounce = 0.3; // 땅에 닿았을 때 튕기는 정도
+        this.ground = canvas.height * 0.82; // 잔디 부분 높이 (이미지에 맞춰 조정)
     }
-    // ... update와 draw는 그대로 유지
 
     update() {
-        this.angle += this.swingSpeed;
+        if (this.isFalling) {
+            // 떨어지는 중력 로직
+            this.vy += this.gravity;
+            this.y += this.vy;
+
+            // 땅(잔디)에 닿았을 때
+            if (this.y + this.size > this.ground) {
+                this.y = this.ground - this.size;
+                this.vy *= -this.bounce; // 톡! 하고 튀어오름
+                
+                // 속도가 아주 작아지면 멈춤
+                if (Math.abs(this.vy) < 1) {
+                    this.vy = 0;
+                    this.isFalling = false; // 떨어지는 상태 종료 (땅에 고정)
+                }
+            }
+        } else if (this.y < canvas.height * 0.7) { 
+            // 땅에 닿기 전(나무에 매달린 상태)에만 살랑살랑 흔들림
+            this.angle += this.swingSpeed;
+        }
     }
+
     draw() {
         ctx.save();
-        // 열매의 윗부분(가지에 매달린 부분)을 중심으로 흔들리게 설정
-        ctx.translate(this.x + this.size/2, this.y);
-        ctx.rotate(Math.sin(this.angle) * this.range);
-        // 이미지를 캔버스 중앙에서 위로 올리지 않도록 배치 (윗부분 고정)
-        ctx.drawImage(this.img, -this.size/2, 0, this.size, this.size);
+        if (this.y + this.size < this.ground - 5) {
+            // 나무에 매달려 있거나 공중에 있을 때만 회전(흔들림) 적용
+            ctx.translate(this.x + this.size / 2, this.y);
+            ctx.rotate(Math.sin(this.angle) * this.range);
+            ctx.drawImage(this.img, -this.size / 2, 0, this.size, this.size);
+        } else {
+            // 땅에 떨어졌을 때는 똑바로 서있기
+            ctx.drawImage(this.img, this.x, this.y, this.size, this.size);
+        }
         ctx.restore();
     }
 }
@@ -231,3 +258,26 @@ function animate() {
     requestAnimationFrame(animate);
 }
 animate();
+// 열매 클릭 감지
+canvas.addEventListener('mousedown', (e) => {
+    // 캔버스 내 마우스 좌표 계산
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // 생성된 열매들을 확인 (나중에 생긴 열매가 위에 있으므로 역순으로 확인)
+    for (let i = fruits.length - 1; i >= 0; i--) {
+        const f = fruits[i];
+        // 열매의 범위 안에 마우스가 있는지 확인
+        if (mouseX > f.x && mouseX < f.x + f.size &&
+            mouseY > f.y && mouseY < f.y + f.size) {
+            
+            // 이미 떨어지는 중이 아닐 때만 낙하 시작!
+            if (!f.isFalling) {
+                f.isFalling = true;
+                f.vy = 2; // 처음 떨어질 때 살짝 힘을 줌
+                break; // 한 번에 하나만 떨어뜨리기
+            }
+        }
+    }
+});
