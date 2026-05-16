@@ -10,10 +10,14 @@ let fruits = [];
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    
+    // 화면 크기가 변할 때마다 모든 열매의 위치를 현재 비율에 맞춰 재배치
+    fruits.forEach(f => f.updatePixelPosition());
 }
+
+// 윈도우 리사이즈 이벤트 연결
 window.addEventListener('resize', resize);
 resize();
-
 function startOrchard() {
     document.getElementById('entryOverlay').style.display = 'none';
     bgm.play().catch(() => console.log("재생 권한 필요"));
@@ -26,42 +30,58 @@ function startOrchard() {
 class Fruit {
     constructor(img) {
         this.img = img;
-        this.size = 70 + Math.random() * 40;
-        this.x = (canvas.width * 0.15) + Math.random() * (canvas.width * 0.7); 
-        this.y = (canvas.height * 0.35) + Math.random() * (canvas.height * 0.3); 
+        // 1. 나무별 구역 설정 (배경 이미지 분석 결과)
+        const treeZones = [
+            { xRange: [0.18, 0.35], yRange: [0.35, 0.60] }, // 왼쪽 나무
+            { xRange: [0.42, 0.58], yRange: [0.30, 0.65] }, // 가운데 나무
+            { xRange: [0.65, 0.82], yRange: [0.35, 0.60] }  // 오른쪽 나무
+        ];
         
-        // 흔들림 속성
+        // 랜덤하게 나무 하나 선택
+        const zone = treeZones[Math.floor(Math.random() * treeZones.length)];
+        
+        // 2. 상대 좌표(비율)로 저장 (화면 크기 변화 대응용)
+        this.relX = zone.xRange[0] + Math.random() * (zone.xRange[1] - zone.xRange[0]);
+        this.relY = zone.yRange[0] + Math.random() * (zone.yRange[1] - zone.yRange[0]);
+        this.relSize = 0.08 + Math.random() * 0.04; // 화면 너비 대비 크기 비율
+
+        // 실제 픽셀 위치 계산
+        this.updatePixelPosition();
+
+        // 흔들림 및 낙하 속성
         this.angle = Math.random() * Math.PI * 2;
         this.swingSpeed = 0.015 + Math.random() * 0.015;
         this.range = 0.08 + Math.random() * 0.1;
-
-        // 🍎 낙하 속성 추가
         this.isFalling = false;
-        this.vy = 0; // 수직 속도
-        this.gravity = 0.5; // 중력 세기
-        this.bounce = 0.3; // 땅에 닿았을 때 튕기는 정도
-        this.ground = canvas.height * 0.82; // 잔디 부분 높이 (이미지에 맞춰 조정)
+        this.vy = 0;
+        this.gravity = 0.6;
+        this.bounce = 0.3;
+    }
+
+    // 화면 크기에 맞춰 픽셀 위치를 갱신하는 함수
+    updatePixelPosition() {
+        this.x = this.relX * canvas.width;
+        this.y = this.relY * canvas.height;
+        this.size = this.relSize * canvas.width;
+        this.ground = canvas.height * 0.82; // 잔디 높이 비율
     }
 
     update() {
         if (this.isFalling) {
-            // 떨어지는 중력 로직
             this.vy += this.gravity;
             this.y += this.vy;
 
-            // 땅(잔디)에 닿았을 때
             if (this.y + this.size > this.ground) {
                 this.y = this.ground - this.size;
-                this.vy *= -this.bounce; // 톡! 하고 튀어오름
-                
-                // 속도가 아주 작아지면 멈춤
+                this.vy *= -this.bounce;
                 if (Math.abs(this.vy) < 1) {
                     this.vy = 0;
-                    this.isFalling = false; // 떨어지는 상태 종료 (땅에 고정)
+                    this.isFalling = false;
                 }
             }
-        } else if (this.y < canvas.height * 0.7) { 
-            // 땅에 닿기 전(나무에 매달린 상태)에만 살랑살랑 흔들림
+            // 떨어진 후의 위치를 상대 좌표(relY)에도 반영
+            this.relY = this.y / canvas.height;
+        } else if (this.y < this.ground - this.size - 10) {
             this.angle += this.swingSpeed;
         }
     }
@@ -69,18 +89,15 @@ class Fruit {
     draw() {
         ctx.save();
         if (this.y + this.size < this.ground - 5) {
-            // 나무에 매달려 있거나 공중에 있을 때만 회전(흔들림) 적용
             ctx.translate(this.x + this.size / 2, this.y);
             ctx.rotate(Math.sin(this.angle) * this.range);
             ctx.drawImage(this.img, -this.size / 2, 0, this.size, this.size);
         } else {
-            // 땅에 떨어졌을 때는 똑바로 서있기
             ctx.drawImage(this.img, this.x, this.y, this.size, this.size);
         }
         ctx.restore();
     }
 }
-
 // --- [공통 이미지 처리 로직] ---
 async function processImage(dataUrl) {
     showLoading(true, "열매 열리는 중...");
@@ -197,26 +214,19 @@ function showLoading(show, msg) {
 // 🖥️ 전체화면 토글
 function toggleFullScreen() {
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-            console.error(`전체화면 오류: ${err.message}`);
-        });
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
     } else {
         document.exitFullscreen();
     }
 }
 
-// 🌓 전체화면 상태 변화 감지
+// 전체화면 상태에 따라 UI를 강제로 끄고 켬
 document.addEventListener('fullscreenchange', () => {
     const ui = document.getElementById('uiPanel');
     if (document.fullscreenElement) {
-        // 전체화면 진입 시 2초 뒤에 자동으로 처음 한 번 숨기기
-        window.uiTimeout = setTimeout(() => {
-            ui.style.opacity = "0";
-            ui.style.pointerEvents = "none";
-        }, 2000);
+        ui.style.opacity = "0";
+        ui.style.pointerEvents = "none";
     } else {
-        // 해제 시 즉시 나타남
-        clearTimeout(window.uiTimeout);
         ui.style.opacity = "1";
         ui.style.pointerEvents = "auto";
     }
